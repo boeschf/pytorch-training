@@ -37,7 +37,7 @@ We assume:
 
 - Questions? Ask anytime!
   - We also have a Slack channel
-- Course materials: <a href="https://github.com/eth-cscs/pytorch-training">https://github.com/eth-cscs/pytorch-training</a>
+- Course materials: [https://github.com/eth-cscs/pytorch-training](https://github.com/eth-cscs/pytorch-training)
 - We'll use CSCS' ALPS cluster for the exercises
   - Login details will be provided (e-mail)
 
@@ -58,8 +58,7 @@ We’ll cover:
 - Introduction to Large Language Models (LLMs)
 
 <Admonition type="info" title="Course Material">
-Link to the course material and exercises can be found at:
-<a href="https://github.com/eth-cscs/pytorch-training">https://github.com/eth-cscs/pytorch-training</a>
+Link to the course material and exercises can be found at: https://github.com/eth-cscs/pytorch-training
 </Admonition>
 
 ---
@@ -104,7 +103,7 @@ level: 2
 <div grid="~ cols-2 gap-4">
 <div class="col-span-1">
 
-- We will be using <a href="https://jupyter-daint.cscs.ch">https://jupyter-daint.cscs.ch</a>
+- We will be using [https://jupyter-daint.cscs.ch](https://jupyter-daint.cscs.ch)
 - You can login using your credentials provided via email
 - Once you logged in
     - you will find the button "Start my server" (see image)

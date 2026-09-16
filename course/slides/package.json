@@ -3,12 +3,16 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "npm@12.0.2",
   "engines": {
-    "node": "24.21.x"
+    "node": "24.21.x",
+    "npm": "12.0.x"
   },
   "scripts": {
-    "build": "slidev build slides.md --out ../build/slides",
+    "prebuild": "node -e \"require('node:fs').rmSync('../build/slides', { recursive: true, force: true })\"",
+    "build": "slidev build slides.md --out ../build/slides --base ./ --router-mode hash",
     "dev": "slidev slides.md",
+    "preview": "vite preview --outDir ../build/slides --host 127.0.0.1",
     "export": "slidev export slides.md --output ../build/pytorch-course.pdf"
   },
   "dependencies": {
@@ -16,5 +20,10 @@
     "@slidev/cli": "53.0.0",
     "@slidev/theme-default": "0.25.0",
     "vue": "3.5.42"
+  },
+  "overrides": {
+    "dompurify": "3.4.15",
+    "image-size": "2.0.4",
+    "lodash-es": "4.18.1"
   }
 }

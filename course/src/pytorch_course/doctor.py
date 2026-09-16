@@ -205,8 +205,8 @@ def render_human(report: dict[str, Any], errors: list[str]) -> str:
     return "\n".join(lines)
 
 
-def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
+def add_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add environment-doctor arguments to a command parser."""
     parser.add_argument("--json", action="store_true", help="emit machine-readable JSON")
     parser.add_argument("--require-torch", action="store_true")
     parser.add_argument("--require-cuda", action="store_true")
@@ -216,11 +216,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="reject a PyTorch installation located inside course/.venv",
     )
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    add_arguments(parser)
     return parser.parse_args(argv)
 
 
-def main(argv: list[str] | None = None) -> int:
-    args = parse_args(argv)
+def run_doctor(args: argparse.Namespace) -> int:
+    """Collect, validate, and print one environment report."""
     report = collect_report()
     errors = validate_report(
         report,
@@ -234,6 +239,10 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print(render_human(report, errors))
     return 1 if errors else 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    return run_doctor(parse_args(argv))
 
 
 if __name__ == "__main__":

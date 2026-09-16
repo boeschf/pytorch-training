@@ -7,7 +7,7 @@ requires-python = ">=3.12,<3.13"
 dependencies = []
 
 [project.scripts]
-course-doctor = "pytorch_course.doctor:main"
+course = "pytorch_course.cli:main"
 
 [dependency-groups]
 dev = [

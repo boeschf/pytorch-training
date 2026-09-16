@@ -23,4 +23,4 @@ fi
 uv sync --project "$course_root" --all-groups --frozen
 
 printf 'Course environment ready: %s\n' "$course_root/.venv"
-printf 'Run: uv run --project %q course-doctor\n' "$course_root"
+printf 'Run: uv run --project %q course doctor\n' "$course_root"

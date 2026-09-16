@@ -24,6 +24,20 @@ uv run jupyter lab
 
 Select the **CSCS PyTorch Course** kernel when opening a notebook.
 
+## First runnable slice
+
+Inside the canonical course image:
+
+```bash
+export PYTHONPATH="$PWD/src"
+python -m pytorch_course.cli prep tensor-device --device cpu
+python -m pytorch_course.cli train mlp --device cpu
+```
+
+Then complete the five explicit optimization operations in [`exercises/day1/mlp.py`](exercises/day1/mlp.py). The reference path, thin notebook, and slides all use the implementation under `src/pytorch_course/foundations/`.
+
+A workstation without PyTorch can still build slides, edit material, and run the authoring tools. PyTorch exercises and notebooks require the canonical image.
+
 ## Course material
 
 The participant-facing material will be organized as:
@@ -37,7 +51,7 @@ notebooks/        guided explanations and analysis
 slides/           presentation source
 ```
 
-Directories appear as their runnable material is added. The clean-slate rebuild is currently at the environment and course-structure stage.
+The Phase 1 golden slice now covers the preparation diagnostic and a deterministic Day 1 MLP. Later sections appear as their runnable material is added.
 
 ## Command help
 

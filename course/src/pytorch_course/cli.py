@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import sys
@@ -12,6 +13,76 @@ from pytorch_course import doctor
 
 COURSE_ROOT = Path(__file__).resolve().parents[2]
 ENVIRONMENT_DIR = COURSE_ROOT / "environment"
+
+
+def emit_report(
+    report: dict[str, object],
+    *,
+    as_json: bool,
+    output: Path | None,
+    human_lines: list[str],
+) -> int:
+    """Print a report, optionally persisting the same JSON contract."""
+    encoded = json.dumps(report, indent=2, sort_keys=True)
+    if output is not None:
+        output_path = output if output.is_absolute() else COURSE_ROOT / output
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(encoded + "\n", encoding="utf-8")
+    print(encoded if as_json else "\n".join(human_lines))
+    return 0 if report["status"] == "pass" else 1
+
+
+def run_tensor_diagnostic(args: argparse.Namespace) -> int:
+    """Run the preparation tensor and device diagnostic."""
+    from pytorch_course.foundations.tensors import tensor_device_report
+
+    try:
+        report = tensor_device_report(args.device)
+    except RuntimeError as error:
+        print(error, file=sys.stderr)
+        return 1
+    return emit_report(
+        report,
+        as_json=args.json,
+        output=args.output,
+        human_lines=[
+            f"Device: {report['selected_device']} (requested {report['requested_device']})",
+            f"Tensor: shape={report['shape']}, dtype={report['dtype']}",
+            f"CUDA: available={report['cuda_available']}, devices={report['cuda_device_count']}",
+            f"Status: {str(report['status']).upper()}",
+        ],
+    )
+
+
+def run_mlp_training(args: argparse.Namespace) -> int:
+    """Run the deterministic Day 1 reference training path."""
+    from pytorch_course.foundations.mlp import train_mlp
+
+    try:
+        report = train_mlp(
+            requested_device=args.device,
+            seed=args.seed,
+            epochs=args.epochs,
+            learning_rate=args.learning_rate,
+            samples=args.samples,
+        )
+    except (RuntimeError, ValueError) as error:
+        print(error, file=sys.stderr)
+        return 1
+    return emit_report(
+        report,
+        as_json=args.json,
+        output=args.output,
+        human_lines=[
+            f"Device: {report['selected_device']} (requested {report['requested_device']})",
+            (
+                f"Training loss: {report['initial_train_loss']:.6f} "
+                f"→ {report['final_train_loss']:.6f}"
+            ),
+            f"Evaluation accuracy: {report['eval_accuracy']:.1%}",
+            f"Status: {str(report['status']).upper()}",
+        ],
+    )
 
 
 def run(command: list[str], *, environment: dict[str, str] | None = None) -> int:
@@ -91,6 +162,26 @@ def create_parser() -> argparse.ArgumentParser:
     )
     doctor.add_arguments(doctor_parser)
 
+    prep = commands.add_parser("prep", help="run pre-course diagnostics")
+    prep_commands = prep.add_subparsers(dest="prep_command", required=True)
+    tensor_device = prep_commands.add_parser(
+        "tensor-device", help="check tensor creation and device transfer"
+    )
+    tensor_device.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
+    tensor_device.add_argument("--json", action="store_true")
+    tensor_device.add_argument("--output", type=Path)
+
+    train = commands.add_parser("train", help="run reference training paths")
+    train_commands = train.add_subparsers(dest="train_command", required=True)
+    mlp = train_commands.add_parser("mlp", help="train the deterministic Day 1 MLP")
+    mlp.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
+    mlp.add_argument("--seed", type=int, default=7)
+    mlp.add_argument("--epochs", type=int, default=200)
+    mlp.add_argument("--learning-rate", type=float, default=0.05)
+    mlp.add_argument("--samples", type=int, default=512)
+    mlp.add_argument("--json", action="store_true")
+    mlp.add_argument("--output", type=Path)
+
     kernel = commands.add_parser("kernel", help="manage the participant Jupyter kernel")
     kernel.add_argument("action", choices=("install",))
 
@@ -111,6 +202,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "doctor":
         return doctor.run_doctor(args)
+    if args.command == "prep" and args.prep_command == "tensor-device":
+        return run_tensor_diagnostic(args)
+    if args.command == "train" and args.train_command == "mlp":
+        return run_mlp_training(args)
     if args.command == "kernel":
         return install_kernel()
     if args.command == "slides":
@@ -118,3 +213,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "alps-smoke":
         return run_alps_smoke(args)
     parser.error(f"unknown command: {args.command}")
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

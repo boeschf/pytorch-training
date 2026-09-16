@@ -29,11 +29,14 @@
 - Participant-facing `.ipynb` files must execute from a clean kernel.
 - Outputs are cleared from source unless they are small, intentional teaching evidence.
 - Important implementation code belongs in importable modules, not only in notebook cells.
+- A paired percent-format `.py` file is the reviewable source; synchronize its participant `.ipynb` with Jupytext.
 
 ## Slides
 
 - Slide code refers to tested files or commands.
 - Do not maintain a second implementation in a slide.
+- Import marked regions from canonical Python files; `slides/snippets/pytorch_course` is the checked-in bridge into Slidev's project root.
+- Do not embed a live Jupyter interface in the deck; open the notebook separately for live exploration.
 - Figures retain source and licence information.
 - Generated slide output is not committed.
 

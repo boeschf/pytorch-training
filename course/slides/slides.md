@@ -1,37 +1,20 @@
 ---
 theme: default
-title: CSCS PyTorch Course
+title: From Tensors to a Trained MLP
 info: |
-  Clean-slate course rebuild for three days of PyTorch training on Alps.
+  Phase 1 golden vertical slice for the CSCS PyTorch course.
 lineNumbers: true
 transition: slide-left
 ---
 
-# PyTorch on Alps
+# From tensors to a trained MLP
 
-Three-day course — rough draft
-
----
-layout: center
----
-
-# Course progression
+Phase 1 golden vertical slice
 
 ```text
-Tensors → gradients → trained models → transformers → distributed large models
+inspect → implement → train → evaluate
 ```
 
 ---
-layout: default
+src: ./day1/golden-slice.md
 ---
-
-# Phase 0
-
-<Admonition title="Executable material first" color="sky-light">
-The course environment, reference code, exercises, notebooks, and slides use pinned and verifiable inputs.
-</Admonition>
-
-- Canonical Alps PyTorch container
-- Locked course-owned dependencies
-- Git-native history preservation
-- One source of truth for runnable examples

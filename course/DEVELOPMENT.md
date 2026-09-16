@@ -16,6 +16,8 @@ The Python project intentionally does not declare `torch`. `environment/create-v
 
 The bootstrap script remains necessary because `uv` has no `pyproject.toml` setting equivalent to `uv venv --system-site-packages`. After that one-time bootstrap, common workflows use the unified `course` command.
 
+On a workstation without PyTorch, this environment still supports slide and notebook authoring, Jupytext synchronization, linting, and documentation work. Executing PyTorch cells or training commands requires the canonical image.
+
 ## Common commands
 
 ```bash
@@ -29,18 +31,50 @@ uv run course doctor --json
 # Participant kernel
 uv run course kernel install
 
+# Golden vertical slice
+uv run course prep tensor-device --device cpu
+uv run course train mlp --device cpu --json
+
 # Slides
 uv run course slides setup
 uv run course slides build
 uv run course slides dev
 uv run course slides preview
 uv run course slides audit
+uv run course slides export
 
 # One-node image and NCCL verification
 uv run course alps-smoke --account=<account> --gpus=4
 ```
 
 Run `uv run course --help` for the complete command surface. Scripts under `environment/` are implementation details and remain directly callable for debugging.
+
+The `uv run` training commands assume the selected Python environment can import PyTorch. The canonical image already contains the runtime but not `uv`; execute the same CLI there with:
+
+```bash
+export PYTHONPATH="$PWD/src"
+python -m pytorch_course.cli prep tensor-device --device cpu
+python -m pytorch_course.cli train mlp --device cuda --json
+```
+
+## Notebook and slide integration
+
+Notebooks and slides remain separate educational views: notebooks support exploration and retained outputs, while slides support presentation pacing and concise explanation. Embedding a live Jupyter interface in Slidev was rejected because it rendered poorly, coupled the deck to a running notebook server, and did not remove source drift.
+
+The shared contract is executable code instead:
+
+- `src/pytorch_course/foundations/` is the implementation source of truth;
+- the paired Jupytext and `.ipynb` notebook imports that implementation;
+- the reference solution and smoke scenarios call the same functions;
+- Slidev imports marked regions from the same Python files through `slides/snippets/pytorch_course`, a relative symlink required because Slidev restricts snippet imports to its project root.
+
+Synchronize the participant notebook after editing its percent-format source:
+
+```bash
+uv run jupytext --sync notebooks/day1/golden_slice.py
+```
+
+For an occasional live demonstration, open the notebook beside the deck rather than embedding Jupyter in a slide.
 
 ## Node and npm policy
 

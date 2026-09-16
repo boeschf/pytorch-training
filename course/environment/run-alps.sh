@@ -10,4 +10,7 @@ exec srun \
   --mpi=pmix \
   --network=disable_rdzv_get \
   --environment="$course_root/environment/alps.toml" \
+  --distribution=block:cyclic \
+  --cpu-bind=sockets \
+  --cpus-per-task "${SLURM_CPUS_PER_TASK:-72}" \
   "$@"

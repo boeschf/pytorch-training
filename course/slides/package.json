@@ -21,6 +21,12 @@
     "@slidev/theme-default": "0.25.0",
     "vue": "3.5.42"
   },
+  "devDependencies": {
+    "playwright-chromium": "1.63.0"
+  },
+  "allowScripts": {
+    "playwright-chromium@1.63.0": true
+  },
   "overrides": {
     "dompurify": "3.4.15",
     "image-size": "2.0.4",

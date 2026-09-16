@@ -86,6 +86,14 @@ For live authoring:
 uv run course slides dev
 ```
 
+PDF export uses the pinned `playwright-chromium` development dependency:
+
+```bash
+uv run course slides export
+```
+
+The PDF is written to `build/pytorch-course.pdf`. The first `uv run course slides setup` downloads the matching Chromium build, so it requires network access and takes longer than later clean installs. npm is allowed to run only the install script for the exact pinned Playwright Chromium version; that script installs the export browser.
+
 The eventual deployment must set an explicit Slidev base path if it is hosted below a URL prefix rather than at the web root.
 
 ## Alps smoke checks

@@ -1,0 +1,20 @@
+{
+  "name": "@cscs/pytorch-course-slides",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.21.x"
+  },
+  "scripts": {
+    "build": "slidev build slides.md --out ../build/slides",
+    "dev": "slidev slides.md",
+    "export": "slidev export slides.md --output ../build/pytorch-course.pdf"
+  },
+  "dependencies": {
+    "@iconify/vue": "5.0.1",
+    "@slidev/cli": "53.0.0",
+    "@slidev/theme-default": "0.25.0",
+    "vue": "3.5.42"
+  }
+}

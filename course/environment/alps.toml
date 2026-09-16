@@ -1,0 +1,15 @@
+image = "jfrog.svc.cscs.ch/docker-group-csstaff/alps-images/pytorch-cuda:26.07-py3-alps7-dev-14ac42497583f60a1dd156230f00af8f"
+mounts = [
+  "/capstor/",
+  "/iopsstor/",
+  "/ritom/",
+]
+workdir = "${PWD}"
+writable = true
+entrypoint = true
+
+[env]
+PMIX_MCA_psec = "native"
+
+[annotations]
+com.hooks.cxi.enabled = "false"

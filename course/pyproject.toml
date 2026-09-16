@@ -1,0 +1,39 @@
+[project]
+name = "cscs-pytorch-course"
+version = "0.0.0"
+description = "Executable material for the CSCS three-day PyTorch course"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = []
+
+[project.scripts]
+course-doctor = "pytorch_course.doctor:main"
+
+[dependency-groups]
+dev = [
+  "nodeenv>=1.9,<2",
+  "pytest>=8,<10",
+  "ruff>=0.12,<1",
+]
+notebooks = [
+  "ipykernel>=6.29,<8",
+  "jupyterlab>=4.4,<5",
+]
+
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pytorch_course"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.uv]
+default-groups = ["dev", "notebooks"]
+required-version = ">=0.12.0"

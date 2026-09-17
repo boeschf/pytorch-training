@@ -4,7 +4,17 @@ version = "0.0.0"
 description = "Executable material for the CSCS three-day PyTorch course"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
-dependencies = []
+dependencies = [
+  "numpy>=2,<3",
+]
+
+[project.optional-dependencies]
+cpu = [
+  "torch==2.11.0",
+]
+cuda = [
+  "torch==2.11.0",
+]
 
 [project.scripts]
 course = "pytorch_course.cli:main"
@@ -38,3 +48,25 @@ target-version = "py312"
 [tool.uv]
 default-groups = ["dev", "notebooks"]
 required-version = ">=0.12.0"
+conflicts = [
+  [
+    { extra = "cpu" },
+    { extra = "cuda" },
+  ],
+]
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cpu", extra = "cpu" },
+  { index = "pytorch-cu128", extra = "cuda" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true

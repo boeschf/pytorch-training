@@ -4,39 +4,89 @@ Participant material for the three-day PyTorch course on Alps.
 
 The course starts with tensors and training loops, progresses through CNNs and transformers, and ends with distributed large-model training.
 
-## One-time setup
+## Choose a runtime profile
 
-From this directory:
+The repository has three isolated Python 3.12 environments:
+
+| Profile | Environment | PyTorch source | Use |
+| --- | --- | --- | --- |
+| `cpu` | `.venv-cpu` | locked CPU wheel from the PyTorch index | default laptop and workstation path |
+| `cuda` | `.venv-cuda` | locked CUDA 12.8 wheel from the PyTorch index | a generic NVIDIA workstation |
+| `alps-gh200` | `.venv-alps-gh200` | pinned course image, not `uv` | GH200 exercises on Alps |
+
+Do not reuse one environment for another profile. The setup command checks both
+the profile marker and who owns the PyTorch installation.
+
+## Laptop or workstation setup
+
+The portable CPU profile is the default:
 
 ```bash
-./environment/create-venv.sh
-uv run course doctor
-uv run course kernel install
+./environment/create-venv.sh cpu
+source .venv-cpu/bin/activate
+course doctor
+course kernel install
 ```
 
-The first command creates the locked Python 3.12 environment. PyTorch, CUDA, NCCL, and the Alps network stack come from the canonical course container rather than from `uv`.
+On a workstation with a compatible NVIDIA driver, replace `cpu` with `cuda`:
+
+```bash
+./environment/create-venv.sh cuda
+source .venv-cuda/bin/activate
+course doctor
+course kernel install
+```
+
+The CUDA profile verifies the locked CUDA build even when no GPU is currently
+visible. A command that needs a GPU still fails clearly if CUDA is unavailable.
+
+## Alps GH200 setup
+
+Create the Alps environment inside the pinned course image so it inherits that
+image's PyTorch, CUDA, NCCL, and network stack:
+
+```bash
+./environment/run-alps.sh \
+  --account=<account> --partition=debug \
+  --nodes=1 --ntasks=1 --gpus-per-node=1 --time=00:10:00 \
+  ./environment/create-venv.sh alps-gh200
+```
+
+The environment contains only a small course-source bootstrap. It never installs
+or shadows the image's PyTorch. Activate it only inside the same image, for
+example:
+
+```bash
+./environment/run-alps.sh \
+  --account=<account> --partition=debug \
+  --nodes=1 --ntasks=1 --gpus-per-node=1 --time=00:10:00 \
+  bash -lc 'source .venv-alps-gh200/bin/activate && course doctor && course kernel install'
+```
 
 ## Start JupyterLab
 
+From an activated profile:
+
 ```bash
-uv run jupyter lab
+jupyter lab
 ```
 
-Select the **CSCS PyTorch Course** kernel when opening a notebook.
+Installed kernels are named **CSCS PyTorch Course — CPU**, **— CUDA**, and
+**— Alps GH200**. They can coexist. The checked-in notebook selects CPU by
+default; choose another course kernel when the lesson requires it.
 
 ## First runnable slice
 
-Inside the canonical course image:
+From any activated profile:
 
 ```bash
-export PYTHONPATH="$PWD:$PWD/src"
-python -m pytorch_course.cli prep tensor-device --device cpu
-python -m pytorch_course.cli train mlp --device cpu
+course prep tensor-device --device cpu
+course train mlp --device cpu
 ```
 
-Then complete the five explicit optimization operations in [`lessons/day1/mlp/exercise.py`](lessons/day1/mlp/exercise.py). Its reference implementation, solution, notebook, and slides are in the same directory.
-
-A workstation without PyTorch can still build slides, edit material, and run the authoring tools. PyTorch exercises and notebooks require the canonical image.
+Then complete the five explicit optimization operations in
+[`lessons/day1/mlp/exercise.py`](lessons/day1/mlp/exercise.py). Its reference
+implementation, solution, notebook, and slides are in the same directory.
 
 ## Course material
 
@@ -61,8 +111,8 @@ The Phase 1 golden slice covers the preparation diagnostic and deterministic Day
 ## Command help
 
 ```bash
-uv run course --help
-uv run course doctor --help
+course --help
+course doctor --help
 ```
 
 Instructor, developer, slide-authoring, Alps runtime, and migration instructions are in [`DEVELOPMENT.md`](DEVELOPMENT.md).

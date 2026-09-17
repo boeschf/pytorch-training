@@ -4,7 +4,10 @@ This document covers course authoring, validation, slides, Alps execution, and m
 
 ## Environment model
 
-The canonical image is recorded by tag and immutable manifest digest in [`environment/image.env`](environment/image.env). The checked-in [`environment/alps.toml`](environment/alps.toml) follows the [CSCS Alps extended image guidance](https://docs.cscs.ch/software/alps-extended-images/):
+The canonical image is recorded by tag and immutable manifest digest in
+[`environment/image.env`](environment/image.env). The checked-in
+[`environment/alps.toml`](environment/alps.toml) follows the
+[CSCS Alps extended image guidance](https://docs.cscs.ch/software/alps-extended-images/):
 
 - execute the image entrypoint;
 - use PMIx;
@@ -12,50 +15,81 @@ The canonical image is recorded by tag and immutable manifest digest in [`enviro
 - pass `--network=disable_rdzv_get`;
 - pass the EDF to `srun`, not `sbatch`.
 
-The Python project intentionally does not declare `torch`. `environment/create-venv.sh` creates `.venv` with `--system-site-packages`, allowing the canonical container's PyTorch/CUDA/NCCL installation to remain authoritative. `uv` owns only course tooling such as Jupyter, Ruff, and pytest.
+One `pyproject.toml` and one `uv.lock` define three mutually isolated profiles:
 
-The bootstrap script remains necessary because `uv` has no `pyproject.toml` setting equivalent to `uv venv --system-site-packages`. After that one-time bootstrap, common workflows use the unified `course` command.
+| Profile | Directory | PyTorch owner | Contract |
+| --- | --- | --- | --- |
+| `cpu` | `.venv-cpu` | `uv`, PyTorch CPU index | CPU-only build inside the venv |
+| `cuda` | `.venv-cuda` | `uv`, PyTorch CUDA 12.8 index | CUDA 12.8 build inside the venv |
+| `alps-gh200` | `.venv-alps-gh200` | canonical image | image build outside the venv, with distributed and NCCL |
 
-On a workstation without PyTorch, this environment still supports slide and notebook authoring, Jupytext synchronization, linting, and documentation work. Executing PyTorch cells or training commands requires the canonical image.
+The `cpu` and `cuda` optional dependencies are declared as conflicting extras,
+so a resolver cannot combine their PyTorch builds. Both use the same locked
+course, notebook, and development dependencies. `environment/create-venv.sh`
+sets `UV_PROJECT_ENVIRONMENT` explicitly; plain `uv run` is avoided because it
+would otherwise select the conventional `.venv` path.
+
+The Alps profile is intentionally different. It creates a Python 3.12 venv with
+`--system-site-packages` inside the image, then adds only the repository root and
+`src/` through a `.pth` file. It does not invoke `uv` or `pip`, so it cannot
+shadow the pinned image's PyTorch, CUDA, NCCL, or network libraries. The venv is
+not portable: use `.venv-alps-gh200` only inside that image.
+
+Every environment records a `.course-profile` marker. `course doctor` validates
+the corresponding ownership and build invariants automatically. Passing
+`--require-profile` additionally rejects an accidentally activated environment.
+
+After changing Python dependencies, run `uv lock` once and recreate both local
+profiles through `create-venv.sh`. Never run `uv sync` against the Alps profile.
 
 ## Common commands
 
+Start with the portable authoring profile:
+
 ```bash
-# One-time Python setup
-./environment/create-venv.sh
+./environment/create-venv.sh cpu
+source .venv-cpu/bin/activate
 
 # Environment reports
-uv run course doctor
-uv run course doctor --json
+course doctor
+course doctor --json
 
-# Participant kernel
-uv run course kernel install
+# Profile-specific participant kernel
+course kernel install
 
 # Golden vertical slice
-uv run course prep tensor-device --device cpu
-uv run course train mlp --device cpu --json
+course prep tensor-device --device cpu
+course train mlp --device cpu --json
 
 # Slides
-uv run course slides setup
-uv run course slides build
-uv run course slides dev
-uv run course slides preview
-uv run course slides audit
-uv run course slides export
+course slides setup
+course slides build
+course slides dev
+course slides preview
+course slides audit
+course slides export
 
-# One-node image and NCCL verification
-uv run course alps-smoke --account=<account> --gpus=4
+# One-node image and NCCL verification; requires .venv-alps-gh200
+course alps-smoke --account=<account> --gpus=4
 ```
 
-Run `uv run course --help` for the complete command surface. Scripts under `environment/` are implementation details and remain directly callable for debugging.
+Run `course --help` for the complete command surface. Scripts under
+`environment/` are implementation details and remain directly callable for
+debugging.
 
-The `uv run` training commands assume the selected Python environment can import PyTorch. The canonical image already contains the runtime but not `uv`; execute the same CLI there with:
+To author against a generic NVIDIA runtime, create and activate `cuda` instead.
+Create the Alps profile in a bounded image allocation:
 
 ```bash
-export PYTHONPATH="$PWD:$PWD/src"
-python -m pytorch_course.cli prep tensor-device --device cpu
-python -m pytorch_course.cli train mlp --device cuda --json
+./environment/run-alps.sh \
+  --account=<account> --partition=debug \
+  --nodes=1 --ntasks=1 --gpus-per-node=1 --time=00:10:00 \
+  ./environment/create-venv.sh alps-gh200
 ```
+
+Kernel installation always derives its name from the active marker. The three
+stable kernel IDs are `cscs-pytorch-course-cpu`,
+`cscs-pytorch-course-cuda`, and `cscs-pytorch-course-alps-gh200`.
 
 ## Notebook and slide integration
 
@@ -78,7 +112,7 @@ lessons/day1/mlp/
 Synchronize the participant notebook after editing its adjacent percent-format source:
 
 ```bash
-uv run jupytext --sync lessons/day1/mlp/notebook.py
+jupytext --sync lessons/day1/mlp/notebook.py
 ```
 
 For an occasional live demonstration, open the notebook beside the deck rather than embedding Jupyter in a slide.
@@ -101,13 +135,13 @@ The lockfile contains security overrides for vulnerable transitive versions sele
 - `dompurify` 3.4.15;
 - `image-size` 2.0.4.
 
-Run `uv run course slides audit` after dependency updates. Do not run `npm audit fix --force`: its current recommendation downgrades the direct Slidev dependency and can silently change the authoring contract.
+Run `course slides audit` after dependency updates. Do not run `npm audit fix --force`: its current recommendation downgrades the direct Slidev dependency and can silently change the authoring contract.
 
 `image-size` crosses the major-version range currently declared by PptxGenJS. The HTML Slidev build is verified, but PPTX export is not a supported course workflow and must be re-evaluated before it is enabled.
 
 ## Slide output
 
-`uv run course slides build` writes the static application to `build/slides/`.
+`course slides build` writes the static application to `build/slides/`.
 
 Slidev is a client-rendered single-page application. Its generated `index.html` intentionally contains only application mount elements such as:
 
@@ -118,22 +152,22 @@ Slidev is a client-rendered single-page application. Its generated `index.html` 
 JavaScript renders the slides at runtime. Opening the file directly or inspecting only its body will therefore appear empty. Serve the build over HTTP instead:
 
 ```bash
-uv run course slides preview
+course slides preview
 ```
 
 For live authoring:
 
 ```bash
-uv run course slides dev
+course slides dev
 ```
 
 PDF export uses the pinned `playwright-chromium` development dependency:
 
 ```bash
-uv run course slides export
+course slides export
 ```
 
-The PDF is written to `build/pytorch-course.pdf`. The first `uv run course slides setup` downloads the matching Chromium build, so it requires network access and takes longer than later clean installs. npm is allowed to run only the install script for the exact pinned Playwright Chromium version; that script installs the export browser.
+The PDF is written to `build/pytorch-course.pdf`. The first `course slides setup` downloads the matching Chromium build, so it requires network access and takes longer than later clean installs. npm is allowed to run only the install script for the exact pinned Playwright Chromium version; that script installs the export browser.
 
 The eventual deployment must set an explicit Slidev base path if it is hosted below a URL prefix rather than at the web root.
 
@@ -142,7 +176,7 @@ The eventual deployment must set an explicit Slidev base path if it is hosted be
 The concise interface is:
 
 ```bash
-uv run course alps-smoke \
+course alps-smoke \
   --account=<account> \
   --partition=debug \
   --gpus=4 \

@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 from pytorch_course import doctor
+from pytorch_course.profiles import kernel_identity, require_profile
 
 COURSE_ROOT = Path(__file__).resolve().parents[2]
 ENVIRONMENT_DIR = COURSE_ROOT / "environment"
@@ -117,7 +118,13 @@ def run_slides(action: str) -> int:
 
 
 def install_kernel() -> int:
-    """Install the current course environment as a user Jupyter kernel."""
+    """Install the active managed profile as a user Jupyter kernel."""
+    try:
+        profile = require_profile()
+    except RuntimeError as error:
+        print(error, file=sys.stderr)
+        return 1
+    kernel_name, display_name = kernel_identity(profile)
     return run(
         [
             sys.executable,
@@ -126,9 +133,9 @@ def install_kernel() -> int:
             "install",
             "--user",
             "--name",
-            "cscs-pytorch-course",
+            kernel_name,
             "--display-name",
-            "CSCS PyTorch Course",
+            display_name,
         ]
     )
 

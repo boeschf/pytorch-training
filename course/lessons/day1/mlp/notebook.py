@@ -8,9 +8,9 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.19.5
 #   kernelspec:
-#     display_name: CSCS PyTorch Course
+#     display_name: "CSCS PyTorch Course \u2014 CPU"
 #     language: python
-#     name: cscs-pytorch-course
+#     name: cscs-pytorch-course-cpu
 # ---
 
 # %% [markdown]
@@ -29,8 +29,8 @@ from lessons.prep.tensor_device.reference import tensor_device_report
 # %% [markdown]
 # ## Check tensors and the CPU device
 #
-# The workstation path is intentionally CPU-only. The same diagnostic can select
-# CUDA with `requested_device="auto"` or `"cuda"` on Alps.
+# This checked-in path is intentionally CPU-only. The same diagnostic can select
+# CUDA under the `cuda` or `alps-gh200` profile.
 
 # %%
 tensor_report = tensor_device_report("cpu")

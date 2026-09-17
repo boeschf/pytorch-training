@@ -11,6 +11,13 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from pytorch_course.profiles import (
+    PORTABLE_CUDA_VERSION,
+    PORTABLE_TORCH_VERSION,
+    PROFILES,
+    read_profile,
+)
+
 COURSE_ROOT = Path(__file__).resolve().parents[2]
 IMAGE_ENV = COURSE_ROOT / "environment" / "image.env"
 RUNTIME_ENV_VARS = (
@@ -62,7 +69,7 @@ def collect_torch_report() -> dict[str, Any]:
         }
 
     torch_path = Path(torch.__file__).resolve()
-    course_venv = (COURSE_ROOT / ".venv").resolve()
+    environment = Path(sys.prefix).resolve()
     cuda_available = safely(torch.cuda.is_available)
     device_count = safely(torch.cuda.device_count)
     devices: list[dict[str, Any]] = []
@@ -90,7 +97,7 @@ def collect_torch_report() -> dict[str, Any]:
         "available": True,
         "version": torch.__version__,
         "location": str(torch_path),
-        "inside_course_venv": course_venv in torch_path.parents,
+        "inside_environment": environment in torch_path.parents,
         "compiled_cuda": torch.version.cuda,
         "cuda_available": cuda_available,
         "device_count": device_count,
@@ -114,6 +121,9 @@ def collect_report() -> dict[str, Any]:
             "executable": sys.executable,
             "prefix": sys.prefix,
         },
+        "environment": {
+            "profile": read_profile(),
+        },
         "host": {
             "platform": platform.platform(),
             "machine": platform.machine(),
@@ -126,19 +136,68 @@ def collect_report() -> dict[str, Any]:
     }
 
 
+def validate_profile(report: dict[str, Any], profile: str) -> list[str]:
+    """Return violations of one managed profile's PyTorch ownership contract."""
+    torch_report = report["torch"]
+    if not torch_report["available"]:
+        return [f"{profile} profile requires PyTorch"]
+
+    errors: list[str] = []
+    inside_environment = torch_report.get("inside_environment") is True
+    compiled_cuda = torch_report.get("compiled_cuda")
+    if profile in {"cpu", "cuda"} and not str(torch_report["version"]).startswith(
+        PORTABLE_TORCH_VERSION
+    ):
+        errors.append(
+            f"{profile} profile requires PyTorch {PORTABLE_TORCH_VERSION}, "
+            f"found {torch_report['version']}"
+        )
+    if profile in {"cpu", "cuda"} and not inside_environment:
+        errors.append(f"{profile} profile must install PyTorch inside its virtual environment")
+    if profile == "cpu" and compiled_cuda is not None:
+        errors.append(f"cpu profile requires a CPU-only PyTorch build, found CUDA {compiled_cuda}")
+    if profile == "cuda" and not str(compiled_cuda).startswith(PORTABLE_CUDA_VERSION):
+        errors.append(
+            f"cuda profile requires the CUDA {PORTABLE_CUDA_VERSION} PyTorch build, "
+            f"found {compiled_cuda}"
+        )
+    if profile == "alps-gh200":
+        image = report["course"]["image"]
+        if inside_environment:
+            errors.append("alps-gh200 profile must use image-provided PyTorch")
+        expected_version = image.get("COURSE_IMAGE_PYTORCH_VERSION")
+        if expected_version and not str(torch_report["version"]).startswith(expected_version):
+            errors.append(
+                f"expected image PyTorch {expected_version}, found {torch_report['version']}"
+            )
+        if compiled_cuda is None:
+            errors.append("alps-gh200 profile requires a CUDA-enabled PyTorch build")
+        if torch_report.get("distributed_available") is not True:
+            errors.append("alps-gh200 profile requires torch.distributed")
+        if torch_report.get("nccl_available") is not True:
+            errors.append("alps-gh200 profile requires NCCL")
+    return errors
+
+
 def validate_report(
     report: dict[str, Any],
     *,
     require_torch: bool,
     require_cuda: bool,
     minimum_gpus: int,
-    require_image_torch: bool,
+    require_profile: str | None,
 ) -> list[str]:
     """Return unmet environment requirements."""
     errors: list[str] = []
     python_version = tuple(int(part) for part in report["python"]["version"].split(".")[:2])
     if python_version != (3, 12):
         errors.append(f"Python 3.12 required, found {report['python']['version']}")
+
+    active_profile = report["environment"]["profile"]
+    if require_profile and active_profile != require_profile:
+        errors.append(f"{require_profile} profile required, found {active_profile or 'unmanaged'}")
+    if active_profile:
+        errors.extend(validate_profile(report, active_profile))
 
     torch_report = report["torch"]
     image = report["course"]["image"]
@@ -151,20 +210,6 @@ def validate_report(
     if minimum_gpus and (not isinstance(device_count, int) or device_count < minimum_gpus):
         errors.append(f"at least {minimum_gpus} CUDA devices required, found {device_count}")
 
-    if require_image_torch:
-        if not torch_report["available"]:
-            errors.append("image-provided PyTorch required, but PyTorch import failed")
-        else:
-            if torch_report.get("inside_course_venv"):
-                errors.append(
-                    "PyTorch resolves inside course/.venv; use the image-provided installation"
-                )
-            expected_version = image.get("COURSE_IMAGE_PYTORCH_VERSION")
-            if expected_version and not str(torch_report["version"]).startswith(expected_version):
-                errors.append(
-                    f"expected image PyTorch {expected_version}, found {torch_report['version']}"
-                )
-
     for key in ("COURSE_IMAGE_REPOSITORY", "COURSE_IMAGE_TAG", "COURSE_IMAGE_DIGEST"):
         if not image.get(key):
             errors.append(f"missing pinned image field {key}")
@@ -176,6 +221,7 @@ def render_human(report: dict[str, Any], errors: list[str]) -> str:
     torch_report = report["torch"]
     image = report["course"]["image"]
     lines = [
+        f"Profile: {report['environment']['profile'] or 'unmanaged'}",
         f"Python: {report['python']['version']} ({report['python']['executable']})",
         f"Platform: {report['host']['platform']}",
         f"Course image: {image['COURSE_IMAGE_REPOSITORY']}:{image['COURSE_IMAGE_TAG']}",
@@ -212,9 +258,9 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--require-cuda", action="store_true")
     parser.add_argument("--minimum-gpus", type=int, default=0)
     parser.add_argument(
-        "--require-image-torch",
-        action="store_true",
-        help="reject a PyTorch installation located inside course/.venv",
+        "--require-profile",
+        choices=PROFILES,
+        help="require and validate one managed course environment profile",
     )
 
 
@@ -232,7 +278,7 @@ def run_doctor(args: argparse.Namespace) -> int:
         require_torch=args.require_torch,
         require_cuda=args.require_cuda,
         minimum_gpus=args.minimum_gpus,
-        require_image_torch=args.require_image_torch,
+        require_profile=args.require_profile,
     )
     if args.json:
         print(json.dumps({**report, "errors": errors}, indent=2, sort_keys=True))

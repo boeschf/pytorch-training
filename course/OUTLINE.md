@@ -2,6 +2,13 @@
 
 Sections and durations remain provisional until the executable exercises have been timed.
 
+## Runtime progression
+
+- Preparation and Day 1 require only the portable `cpu` profile; `cuda` and `alps-gh200` may accelerate the same material.
+- Day 2 uses `cuda` for GPU-specific training and profiling. Conceptual work and every required exercise retain a bounded CPU path or recorded evidence.
+- Day 3 uses `alps-gh200` for GH200, NCCL, topology, and multi-GPU or multi-node work. Local profiles support preparation and analysis, not substitutes for measured Alps runs.
+- Each lesson states its minimum profile and hardware before its commands. A visible GPU is a lesson requirement, separate from selecting a CUDA-capable profile.
+
 ## Preparation
 
 Outcome: participants can enter Day 1 with a working environment and manipulate tensors confidently.

@@ -16,11 +16,22 @@
 
 ## Python
 
-- Python 3.12 is canonical because the pinned image provides Python 3.12 packages.
-- `uv.lock` pins course-owned Python dependencies.
-- Do not add `torch`, CUDA, NCCL, or network-stack packages to `pyproject.toml`.
+- Python 3.12 is canonical across all runtime profiles.
+- `uv.lock` pins course-owned Python dependencies and both portable PyTorch variants.
+- Keep `torch` out of base dependencies. Declare it only in the mutually exclusive `cpu` and `cuda` extras, each bound to its explicit PyTorch index.
+- Never install PyTorch, CUDA, NCCL, or network-stack packages into `alps-gh200`; the pinned image owns them.
 - Format and lint with Ruff once code volume justifies it; avoid formatting imported legacy material in its history-preserving copy commit.
 - Public interfaces require type annotations and concise docstrings for non-obvious contracts.
+
+## Runtime profiles
+
+- Use only `cpu`, `cuda`, and `alps-gh200` as profile identifiers.
+- Keep each profile in `.venv-<profile>` and record the identifier in `.course-profile`.
+- `cpu` must resolve a CPU-only PyTorch build inside its venv.
+- `cuda` must resolve the locked CUDA 12.8 PyTorch build inside its venv; visible hardware is a separate runtime requirement.
+- `alps-gh200` must resolve PyTorch outside its venv from the canonical image, with distributed and NCCL support.
+- Profile-specific Jupyter kernels use `cscs-pytorch-course-<profile>`; checked-in notebooks default to the portable CPU kernel.
+- Activate exactly one profile. Never copy, move, or reuse a venv between a workstation and the course image.
 
 ## Exercises
 

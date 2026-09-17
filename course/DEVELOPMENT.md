@@ -60,6 +60,8 @@ course kernel install
 # Golden vertical slice
 course prep tensor-device --device cpu
 course train mlp --device cpu --json
+# After completing lessons/day1/mlp/exercise.py
+course exercise mlp --device cpu
 
 # Slides
 course slides setup
@@ -107,7 +109,7 @@ lessons/day1/mlp/
 └── slides.md
 ```
 
-`reference.py` is the executable source of truth. The paired notebook imports it, the solution and smoke scenarios call it, and `slides.md` imports marked regions directly from it. `slides/lessons` is a relative symlink into the lesson tree because Slidev restricts imported Markdown and snippets to its project root.
+`reference.py` is the executable reference path. The paired notebook and smoke scenarios call it, and `slides.md` imports marked regions directly from it. `solution.py` contains the complete five-operation answer and reuses the exercise's self-check harness. `slides/lessons` is a relative symlink into the lesson tree because Slidev restricts imported Markdown and snippets to its project root.
 
 Synchronize the participant notebook after editing its adjacent percent-format source:
 

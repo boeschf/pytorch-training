@@ -86,6 +86,13 @@ def run_mlp_training(args: argparse.Namespace) -> int:
     )
 
 
+def run_mlp_exercise(args: argparse.Namespace) -> int:
+    """Run the participant MLP exercise self-check."""
+    from lessons.day1.mlp.exercise import main
+
+    return main(args.device)
+
+
 def run(command: list[str], *, environment: dict[str, str] | None = None) -> int:
     """Run one checked-in course command from the course root."""
     completed = subprocess.run(
@@ -178,6 +185,13 @@ def create_parser() -> argparse.ArgumentParser:
     tensor_device.add_argument("--json", action="store_true")
     tensor_device.add_argument("--output", type=Path)
 
+    exercise = commands.add_parser("exercise", help="run participant exercise self-checks")
+    exercise_commands = exercise.add_subparsers(dest="exercise_command", required=True)
+    exercise_mlp = exercise_commands.add_parser(
+        "mlp", help="check the Day 1 optimization-step exercise"
+    )
+    exercise_mlp.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
+
     train = commands.add_parser("train", help="run reference training paths")
     train_commands = train.add_subparsers(dest="train_command", required=True)
     mlp = train_commands.add_parser("mlp", help="train the deterministic Day 1 MLP")
@@ -211,6 +225,8 @@ def main(argv: list[str] | None = None) -> int:
         return doctor.run_doctor(args)
     if args.command == "prep" and args.prep_command == "tensor-device":
         return run_tensor_diagnostic(args)
+    if args.command == "exercise" and args.exercise_command == "mlp":
+        return run_mlp_exercise(args)
     if args.command == "train" and args.train_command == "mlp":
         return run_mlp_training(args)
     if args.command == "kernel":

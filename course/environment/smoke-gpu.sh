@@ -7,7 +7,6 @@ venv_python="$course_root/.venv-alps-gh200/bin/python"
   printf 'error: create the alps-gh200 profile before running Alps smoke checks\n' >&2
   exit 1
 }
-export PYTHONPATH="$course_root/src${PYTHONPATH:+:$PYTHONPATH}"
 
 exec "$venv_python" "$course_root/environment/doctor.py" \
   --require-profile alps-gh200 \

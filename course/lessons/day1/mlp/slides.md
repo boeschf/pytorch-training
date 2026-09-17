@@ -154,8 +154,7 @@ Evaluation uses held-out samples that did not drive parameter updates.
 # A deterministic learning signal
 
 ```bash
-PYTHONPATH=.:src python -m pytorch_course.cli train mlp \
-  --device cpu --seed 7 --json
+course train mlp --device cpu --seed 7 --json
 ```
 
 Reference CPU result:
@@ -176,13 +175,13 @@ The contract requires final loss below 35% of initial loss and evaluation accura
 lessons/day1/mlp/
 ├── reference.py   complete executable behavior
 ├── exercise.py    bounded participant gap
-├── solution.py    reference entry point
+├── solution.py    complete exercise answer
 ├── notebook.py    reviewable Jupytext source
 ├── notebook.ipynb participant notebook
 └── slides.md      presentation view
 ```
 
-The notebook and slides explain the same `reference.py`; neither carries a second training implementation.
+The notebook and slides use `reference.py`. The solution repeats only the five operations participants must implement, so the answer remains directly inspectable.
 
 ---
 layout: center
@@ -192,7 +191,13 @@ layout: center
 
 Open `lessons/day1/mlp/exercise.py`.
 
-Replace one `NotImplementedError` with the five ordered operations, run the file, and require:
+Replace one `NotImplementedError` with the five ordered operations, then run:
+
+```bash
+course exercise mlp --device cpu
+```
+
+Require:
 
 ```text
 evaluation accuracy ≥ 95%

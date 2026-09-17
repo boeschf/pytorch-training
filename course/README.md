@@ -85,8 +85,15 @@ course train mlp --device cpu
 ```
 
 Then complete the five explicit optimization operations in
-[`lessons/day1/mlp/exercise.py`](lessons/day1/mlp/exercise.py). Its reference
-implementation, solution, notebook, and slides are in the same directory.
+[`lessons/day1/mlp/exercise.py`](lessons/day1/mlp/exercise.py) and run its
+self-check:
+
+```bash
+course exercise mlp --device cpu
+```
+
+The complete answer is in the adjacent `solution.py`; the reference
+implementation, notebook, and slides are in the same directory.
 
 ## Course material
 

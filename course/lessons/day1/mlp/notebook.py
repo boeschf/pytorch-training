@@ -57,8 +57,8 @@ print(model)
 # %% [markdown]
 # ## Train and evaluate
 #
-# `train_mlp` executes the same explicit optimization loop used by the CLI,
-# reference solution, smoke runs, and slides.
+# `train_mlp` executes the reference loop used by the training CLI, smoke runs,
+# and slides. The adjacent exercise and solution focus on one optimization step.
 
 # %%
 metrics = train_mlp(requested_device="cpu", seed=7)

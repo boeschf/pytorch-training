@@ -120,7 +120,7 @@ predictions = logits.argmax(dim=1)  # [N]
 
 <<< @/lessons/day1/mlp/solution.py#optimization-step-solution
 
-`run_mlp` calls this canonical step once per epoch. The order is part of the algorithm: each call uses the current parameters and applies exactly one update.
+`run_mlp` calls one supplied step per epoch. The CLI uses this canonical solution; the exercise injects the participant's implementation into the same loop.
 
 ---
 
@@ -181,7 +181,7 @@ lessons/day1/mlp/
 └── slides.md      presentation view
 ```
 
-The notebook and CLI use `reference.py`, whose training orchestration delegates every update to `solution.py`. The exercise passes the participant's implementation through its diagnostic runner.
+The notebook, CLI, and exercise all use the single loop in `reference.py`. Its default step comes from `solution.py`; the exercise injects the participant's step and a progress callback.
 
 ---
 layout: center

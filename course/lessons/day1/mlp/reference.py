@@ -1,13 +1,19 @@
-"""Deterministic two-class MLP trained with the canonical solution step."""
+"""Shared deterministic training runner for the two-class MLP lesson."""
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 import torch
 from torch import nn
 
 from lessons.prep.tensor_device.reference import DeviceRequest, resolve_device
+
+OptimizationStep = Callable[
+    [nn.Module, torch.optim.Optimizer, nn.Module, torch.Tensor, torch.Tensor],
+    float,
+]
 
 
 @dataclass(frozen=True)
@@ -49,6 +55,9 @@ class TrainingSnapshot:
     train_accuracy: float
     eval_loss: float
     eval_accuracy: float
+
+
+SnapshotCallback = Callable[[TrainingSnapshot], None]
 
 
 @dataclass(frozen=True)
@@ -124,10 +133,10 @@ def run_mlp(
     learning_rate: float = 0.05,
     samples: int = 512,
     snapshot_interval: int = 10,
+    training_step: OptimizationStep | None = None,
+    on_snapshot: SnapshotCallback | None = None,
 ) -> TrainingRun:
-    """Train the MLP and retain bounded history for diagnostics and plots."""
-    # Import lazily because the solution's executable entry point uses the exercise harness.
-    from lessons.day1.mlp.solution import optimization_step
+    """Train the MLP through the shared loop and retain bounded history."""
 
     if epochs < 1:
         raise ValueError("epochs must be positive")
@@ -135,6 +144,10 @@ def run_mlp(
         raise ValueError("learning_rate must be positive")
     if snapshot_interval < 1:
         raise ValueError("snapshot_interval must be positive")
+    if training_step is None:
+        from lessons.day1.mlp.solution import optimization_step
+
+        training_step = optimization_step
 
     device = resolve_device(requested_device)
     torch.manual_seed(seed)
@@ -154,30 +167,30 @@ def run_mlp(
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
     # endregion training-components
 
-    train_loss, train_accuracy = evaluate(model, train_features, train_targets, loss_function)
-    eval_loss, eval_accuracy = evaluate(model, eval_features, eval_targets, loss_function)
-    history = [
-        TrainingSnapshot(0, train_loss, train_accuracy, eval_loss, eval_accuracy),
-    ]
+    history: list[TrainingSnapshot] = []
+
+    def record_snapshot(epoch: int) -> None:
+        train_loss, train_accuracy = evaluate(model, train_features, train_targets, loss_function)
+        eval_loss, eval_accuracy = evaluate(model, eval_features, eval_targets, loss_function)
+        snapshot = TrainingSnapshot(
+            epoch,
+            train_loss,
+            train_accuracy,
+            eval_loss,
+            eval_accuracy,
+        )
+        history.append(snapshot)
+        if on_snapshot is not None:
+            on_snapshot(snapshot)
+
+    record_snapshot(0)
     model.train()
 
     for epoch in range(1, epochs + 1):
-        optimization_step(model, optimizer, loss_function, train_features, train_targets)
+        training_step(model, optimizer, loss_function, train_features, train_targets)
 
         if epoch % snapshot_interval == 0 or epoch == epochs:
-            train_loss, train_accuracy = evaluate(
-                model, train_features, train_targets, loss_function
-            )
-            eval_loss, eval_accuracy = evaluate(model, eval_features, eval_targets, loss_function)
-            history.append(
-                TrainingSnapshot(
-                    epoch,
-                    train_loss,
-                    train_accuracy,
-                    eval_loss,
-                    eval_accuracy,
-                )
-            )
+            record_snapshot(epoch)
             if epoch != epochs:
                 model.train()
 

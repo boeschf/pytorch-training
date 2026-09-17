@@ -101,7 +101,7 @@ Each directory under `lessons/` keeps one topic's implementation, exercise, solu
 
 ```text
 lessons/day1/mlp/
-├── reference.py
+├── training.py
 ├── exercise.py
 ├── solution.py
 ├── notebook.py
@@ -109,7 +109,7 @@ lessons/day1/mlp/
 └── slides.md
 ```
 
-`reference.py` is the executable reference path. The paired notebook and smoke scenarios call it, and `slides.md` imports marked regions directly from it. `solution.py` contains the complete five-operation answer and reuses the exercise's self-check harness. `slides/lessons` is a relative symlink into the lesson tree because Slidev restricts imported Markdown and snippets to its project root.
+`training.py` owns the shared data, model, evaluation, and training path. The paired notebook, CLI, exercise harness, and smoke scenarios call it, and `slides.md` imports marked regions directly from it. `solution.py` contains the complete five-operation answer and reuses the exercise's self-check harness. `slides/lessons` is a relative symlink into the lesson tree because Slidev restricts imported Markdown and snippets to its project root.
 
 Synchronize the participant notebook after editing its adjacent percent-format source:
 

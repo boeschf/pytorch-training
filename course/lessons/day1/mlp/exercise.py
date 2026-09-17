@@ -11,7 +11,7 @@ from __future__ import annotations
 import torch
 from torch import nn
 
-from lessons.day1.mlp.reference import (
+from lessons.day1.mlp.training import (
     OptimizationStep,
     TrainingSnapshot,
     run_mlp,
@@ -49,6 +49,8 @@ def run_exercise(
 ) -> int:
     """Run the participant step through the shared training loop."""
     print("epoch | train loss | eval loss | eval accuracy")
+    # Only the participant step varies. Dataset setup, model state, evaluation,
+    # and snapshot timing stay in the tested shared runner.
     run = run_mlp(
         requested_device=requested_device,
         seed=7,
@@ -60,6 +62,7 @@ def run_exercise(
         on_snapshot=_print_snapshot,
     )
 
+    # Held-out accuracy is the exercise's observable success criterion.
     if run.history[-1].eval_accuracy < 0.95:
         print("Status: FAIL — revisit the optimization step")
         return 1

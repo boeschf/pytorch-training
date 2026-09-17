@@ -78,7 +78,10 @@ def make_dataset(*, samples: int, seed: int) -> DatasetSplit:
         raise ValueError("samples must be a multiple of four and at least 64")
 
     # region xor-generation
+    # A local generator makes dataset creation reproducible without consuming
+    # random numbers from model initialization.
     generator = torch.Generator().manual_seed(seed)
+    # Opposite corners share a class, producing the nonlinear XOR pattern.
     centers = torch.tensor(
         [
             [-1.0, -1.0],
@@ -90,6 +93,7 @@ def make_dataset(*, samples: int, seed: int) -> DatasetSplit:
     center_ids = torch.arange(samples) % 4
     features = centers[center_ids] + 0.30 * torch.randn(samples, 2, generator=generator)
     targets = torch.tensor([0, 1, 1, 0], dtype=torch.long)[center_ids]
+    # Shuffle before splitting so both partitions contain all four clusters.
     order = torch.randperm(samples, generator=generator)
     features = features[order]
     targets = targets[order]
@@ -113,8 +117,8 @@ def evaluate(
     targets: torch.Tensor,
     loss_function: nn.Module,
 ) -> tuple[float, float]:
-    """Return loss and accuracy without recording gradients."""
-    model.eval()
+    """Return metrics without changing the caller-selected model mode."""
+    # The caller selects train/eval mode; this helper only disables autograd.
     with torch.no_grad():
         logits = model(features)
         loss = loss_function(logits, targets).item()
@@ -144,17 +148,22 @@ def run_mlp(
         raise ValueError("learning_rate must be positive")
     if snapshot_interval < 1:
         raise ValueError("snapshot_interval must be positive")
+    # The CLI/notebook use the complete step by default. The exercise injects
+    # the participant's implementation through the same interface.
     if training_step is None:
         from lessons.day1.mlp.solution import optimization_step
 
         training_step = optimization_step
 
+    # Seed parameter initialization and request deterministic kernels so two
+    # runs with the same inputs produce the same learning signal.
     device = resolve_device(requested_device)
     torch.manual_seed(seed)
     if device.type == "cuda":
         torch.cuda.manual_seed_all(seed)
     torch.use_deterministic_algorithms(True)
 
+    # Move each tensor once. Every subsequent operation stays on one device.
     split = make_dataset(samples=samples, seed=seed)
     train_features = split.train_features.to(device)
     train_targets = split.train_targets.to(device)
@@ -169,6 +178,8 @@ def run_mlp(
 
     history: list[TrainingSnapshot] = []
 
+    # Measure both partitions in the caller-selected evaluation state, retain
+    # the values for plots, and optionally stream them to the exercise UI.
     def record_snapshot(epoch: int) -> None:
         train_loss, train_accuracy = evaluate(model, train_features, train_targets, loss_function)
         eval_loss, eval_accuracy = evaluate(model, eval_features, eval_targets, loss_function)
@@ -183,19 +194,30 @@ def run_mlp(
         if on_snapshot is not None:
             on_snapshot(snapshot)
 
+    # region model-state-transitions
+    # Establish a pre-training baseline without updating parameters.
+    model.eval()
     record_snapshot(0)
+    # Participant and solution steps always run with training behavior enabled.
     model.train()
 
     for epoch in range(1, epochs + 1):
         training_step(model, optimizer, loss_function, train_features, train_targets)
 
         if epoch % snapshot_interval == 0 or epoch == epochs:
+            # Switch explicitly before measuring; evaluate() does not do this.
+            model.eval()
             record_snapshot(epoch)
+            # Leave the completed model ready for inference. For intermediate
+            # snapshots, restore training behavior before the next epoch.
             if epoch != epochs:
                 model.train()
+    # endregion model-state-transitions
 
     initial = history[0]
     final = history[-1]
+    # The executable contract requires both optimization progress and held-out
+    # classification quality; either failure produces a failing report.
     learned = final.train_loss < initial.train_loss * 0.35 and final.eval_accuracy >= 0.95
     report: dict[str, object] = {
         "schema_version": 1,
@@ -226,7 +248,7 @@ def train_mlp(
     learning_rate: float = 0.05,
     samples: int = 512,
 ) -> dict[str, object]:
-    """Train the reference MLP and return stable, machine-readable metrics."""
+    """Train the MLP and return stable, machine-readable metrics."""
     return run_mlp(
         requested_device=requested_device,
         seed=seed,

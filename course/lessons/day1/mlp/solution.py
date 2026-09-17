@@ -17,10 +17,15 @@ def optimization_step(
     targets: torch.Tensor,
 ) -> float:
     """Perform one explicit optimization step and return its loss."""
+    # Gradients accumulate by default, so clear the previous epoch first.
     optimizer.zero_grad(set_to_none=True)
+    # The forward pass builds the graph and returns one score per class.
     logits = model(features)
+    # Cross-entropy compares those raw scores with integer class labels.
     loss = loss_function(logits, targets)
+    # Backpropagation writes gradients into every trainable parameter.
     loss.backward()
+    # SGD consumes those gradients and mutates the model parameters.
     optimizer.step()
     return loss.item()
 

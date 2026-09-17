@@ -56,8 +56,8 @@ def run_tensor_diagnostic(args: argparse.Namespace) -> int:
 
 
 def run_mlp_training(args: argparse.Namespace) -> int:
-    """Run the deterministic Day 1 reference training path."""
-    from lessons.day1.mlp.reference import train_mlp
+    """Run the deterministic Day 1 training path."""
+    from lessons.day1.mlp.training import train_mlp
 
     try:
         report = train_mlp(

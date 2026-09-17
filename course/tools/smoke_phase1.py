@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 
-from lessons.day1.mlp.reference import train_mlp
+from lessons.day1.mlp.training import train_mlp
 from lessons.prep.tensor_device.reference import tensor_device_report
 
 

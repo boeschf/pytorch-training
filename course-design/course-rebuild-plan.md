@@ -81,7 +81,7 @@ course/
 │   │   └── <topic>/
 │   └── day3/
 │       └── <topic>/
-│           ├── reference.py
+│           ├── <implementation>.py
 │           ├── exercise.py
 │           ├── solution.py
 │           ├── notebook.py
@@ -115,7 +115,7 @@ course/
 └── tools/
 ```
 
-Lesson directories are the primary navigation surface. Keep the reference implementation beside its exercise, solution, notebook, and slides so participants and instructors do not have to reconstruct a topic across artifact-type trees. Reserve `src/pytorch_course/` for genuinely cross-lesson infrastructure.
+Lesson directories are the primary navigation surface. Keep descriptively named tested implementations beside their exercises, solutions, notebooks, and slides so participants and instructors do not have to reconstruct a topic across artifact-type trees. Reserve `src/pytorch_course/` for genuinely cross-lesson infrastructure.
 
 `data/` contains manifests and preparation code, not the prepared corpora. `reports/` contains report-generation code and small reference summaries, not full traces.
 
@@ -248,7 +248,7 @@ Notebooks, exercises, slides, and reports consume the executable layers:
 
 - notebooks explain and visualize; they do not contain the only working implementation;
 - exercise code contains deliberate, bounded gaps;
-- solutions reuse the reference implementation or are generated from a common source;
+- solutions reuse the tested implementation or are generated from a common source;
 - slides import tested snippets or cite exact files and commands;
 - recorded metrics and traces back resource-dependent explanations.
 

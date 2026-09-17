@@ -4,8 +4,8 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from lessons.day1.mlp.reference import MLP, make_dataset, run_mlp, train_mlp
 from lessons.day1.mlp.solution import optimization_step
+from lessons.day1.mlp.training import MLP, evaluate, make_dataset, run_mlp, train_mlp
 
 
 def test_cpu_training_has_deterministic_learning_signal() -> None:
@@ -28,6 +28,21 @@ def test_training_history_includes_boundaries_and_progress() -> None:
 
     assert [snapshot.epoch for snapshot in run.history] == [0, 10, 20, 25]
     assert run.history[-1].train_loss < run.history[0].train_loss
+    assert not run.model.training
+
+
+def test_evaluate_preserves_the_selected_model_mode() -> None:
+    split = make_dataset(samples=64, seed=7)
+    model = MLP()
+    loss_function = torch.nn.CrossEntropyLoss()
+
+    model.train()
+    evaluate(model, split.eval_features, split.eval_targets, loss_function)
+    assert model.training
+
+    model.eval()
+    evaluate(model, split.eval_features, split.eval_targets, loss_function)
+    assert not model.training
 
 
 def test_solution_step_updates_model_parameters() -> None:

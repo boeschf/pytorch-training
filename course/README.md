@@ -105,7 +105,7 @@ lessons/
 │   └── tensor_device/
 └── day1/
     └── mlp/
-        ├── reference.py
+        ├── training.py
         ├── exercise.py
         ├── solution.py
         ├── notebook.py

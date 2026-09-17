@@ -56,7 +56,7 @@ Training changes the parameters. The features and targets remain evidence.
 
 # Generate a deterministic offline problem
 
-<<< @/lessons/day1/mlp/reference.py#xor-generation
+<<< @/lessons/day1/mlp/training.py#xor-generation
 
 - fixed generator seed;
 - four balanced clusters;
@@ -81,7 +81,7 @@ The hidden layer transforms the coordinates; `ReLU` introduces the nonlinearity 
 
 # The complete model
 
-<<< @/lessons/day1/mlp/reference.py#mlp-model
+<<< @/lessons/day1/mlp/training.py#mlp-model
 
 Shape flow:
 
@@ -107,7 +107,7 @@ predictions = logits.argmax(dim=1)  # [N]
 
 # Choose the learning components
 
-<<< @/lessons/day1/mlp/reference.py#training-components
+<<< @/lessons/day1/mlp/training.py#training-components
 
 - the model owns trainable parameters;
 - cross-entropy measures classification error;
@@ -138,16 +138,15 @@ Omitting `zero_grad` silently accumulates gradients across iterations.
 
 ---
 
-# Evaluation is a different state
+# Train and evaluation states are explicit
 
-<<< @/lessons/day1/mlp/reference.py#evaluation
+<<< @/lessons/day1/mlp/training.py#model-state-transitions
 
-- `model.eval()` selects evaluation behavior;
-- `torch.no_grad()` avoids building a gradient graph;
-- loss measures error magnitude;
-- accuracy measures the fraction of correct classes.
+- `model.train()` selects training behavior before optimization;
+- `model.eval()` selects evaluation behavior before snapshots;
+- `evaluate` disables gradient recording but never changes model state.
 
-Evaluation uses held-out samples that did not drive parameter updates.
+The final model remains in evaluation mode, ready for held-out inference.
 
 ---
 
@@ -173,7 +172,7 @@ The contract requires final loss below 35% of initial loss and evaluation accura
 
 ```text
 lessons/day1/mlp/
-├── reference.py   data, model, evaluation, and training orchestration
+├── training.py    data, model, evaluation, and training orchestration
 ├── exercise.py    bounded participant gap and diagnostic runner
 ├── solution.py    canonical completed optimization step
 ├── notebook.py    reviewable Jupytext source
@@ -181,7 +180,7 @@ lessons/day1/mlp/
 └── slides.md      presentation view
 ```
 
-The notebook, CLI, and exercise all use the single loop in `reference.py`. Its default step comes from `solution.py`; the exercise injects the participant's step and a progress callback.
+The notebook, CLI, and exercise all use the single loop in `training.py`. Its default step comes from `solution.py`; the exercise injects the participant's step and a progress callback.
 
 ---
 layout: center

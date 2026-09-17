@@ -17,7 +17,7 @@
 # # From tensors to a trained MLP
 #
 # This notebook is a thin educational view over the tested lesson. The complete
-# implementation is beside it in `reference.py`; the notebook inspects inputs,
+# implementation is beside it in `training.py`; the notebook inspects inputs,
 # learning curves, and the learned classification boundary.
 
 # %%
@@ -26,7 +26,7 @@ from pprint import pprint
 import matplotlib.pyplot as plt
 import torch
 
-from lessons.day1.mlp.reference import MLP, make_dataset, run_mlp
+from lessons.day1.mlp.training import MLP, make_dataset, run_mlp
 from lessons.prep.tensor_device.reference import tensor_device_report
 
 # %% [markdown]

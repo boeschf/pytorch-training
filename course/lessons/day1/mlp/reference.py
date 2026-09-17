@@ -1,4 +1,4 @@
-"""Deterministic two-class MLP with an explicit training loop."""
+"""Deterministic two-class MLP trained with the canonical solution step."""
 
 from __future__ import annotations
 
@@ -126,6 +126,9 @@ def run_mlp(
     snapshot_interval: int = 10,
 ) -> TrainingRun:
     """Train the MLP and retain bounded history for diagnostics and plots."""
+    # Import lazily because the solution's executable entry point uses the exercise harness.
+    from lessons.day1.mlp.solution import optimization_step
+
     if epochs < 1:
         raise ValueError("epochs must be positive")
     if learning_rate <= 0:
@@ -158,14 +161,8 @@ def run_mlp(
     ]
     model.train()
 
-    # region explicit-training-loop
     for epoch in range(1, epochs + 1):
-        optimizer.zero_grad(set_to_none=True)
-        logits = model(train_features)
-        loss = loss_function(logits, train_targets)
-        loss.backward()
-        optimizer.step()
-        # endregion explicit-training-loop
+        optimization_step(model, optimizer, loss_function, train_features, train_targets)
 
         if epoch % snapshot_interval == 0 or epoch == epochs:
             train_loss, train_accuracy = evaluate(

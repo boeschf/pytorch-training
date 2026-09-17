@@ -116,11 +116,11 @@ predictions = logits.argmax(dim=1)  # [N]
 
 ---
 
-# The explicit optimization loop
+# The explicit optimization step
 
-<<< @/lessons/day1/mlp/reference.py#explicit-training-loop
+<<< @/lessons/day1/mlp/solution.py#optimization-step-solution
 
-The order is part of the algorithm. Each iteration uses the current parameters and leaves gradients ready for exactly one update.
+`run_mlp` calls this canonical step once per epoch. The order is part of the algorithm: each call uses the current parameters and applies exactly one update.
 
 ---
 
@@ -173,15 +173,15 @@ The contract requires final loss below 35% of initial loss and evaluation accura
 
 ```text
 lessons/day1/mlp/
-├── reference.py   complete executable behavior
-├── exercise.py    bounded participant gap
-├── solution.py    complete exercise answer
+├── reference.py   data, model, evaluation, and training orchestration
+├── exercise.py    bounded participant gap and diagnostic runner
+├── solution.py    canonical completed optimization step
 ├── notebook.py    reviewable Jupytext source
 ├── notebook.ipynb participant notebook
 └── slides.md      presentation view
 ```
 
-The notebook and slides use `reference.py`. The solution repeats only the five operations participants must implement, so the answer remains directly inspectable.
+The notebook and CLI use `reference.py`, whose training orchestration delegates every update to `solution.py`. The exercise passes the participant's implementation through its diagnostic runner.
 
 ---
 layout: center

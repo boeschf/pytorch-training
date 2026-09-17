@@ -60,9 +60,9 @@ print(model)
 # %% [markdown]
 # ## Train and evaluate
 #
-# `run_mlp` executes the reference loop used by the training CLI, smoke runs,
-# and slides while retaining bounded snapshots for visualization. The adjacent
-# exercise and solution focus on one optimization step.
+# `run_mlp` drives the training CLI and smoke runs while retaining bounded
+# snapshots for visualization. Every epoch reuses the completed optimization
+# step from `solution.py`; the exercise supplies the participant's version.
 
 # %%
 run = run_mlp(requested_device="cpu", seed=7)

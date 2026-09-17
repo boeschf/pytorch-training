@@ -1,6 +1,6 @@
 # Rough Course Outline
 
-Sections and durations remain provisional until the executable exercises have been timed.
+Preparation and Day 1 timings are verified in `INSTRUCTOR.md`; later-day durations remain provisional until their executable exercises exist.
 
 ## Runtime progression
 

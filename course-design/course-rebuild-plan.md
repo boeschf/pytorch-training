@@ -1,6 +1,6 @@
 # Three-Day PyTorch Course Rebuild Plan
 
-Status: Phases 0 and 1 implemented and verified on 2026-09-16; Phase 2 is next
+Status: Phases 0–2 implemented and verified through the CPU beginner-path dry run on 2026-09-17; Phase 3 is next
 
 Related detailed design: [`day-3-large-scale-models.md`](day-3-large-scale-models.md)
 

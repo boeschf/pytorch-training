@@ -1,6 +1,6 @@
 # Instructor and Developer Guide
 
-This document covers course authoring, validation, slides, Alps execution, and migration from the legacy material. Participant setup remains in [`README.md`](README.md).
+This document covers course authoring, validation, slides, Alps execution, and migration from the legacy material. Participant setup remains in [`README.md`](README.md); delivery timings and intervention notes are in [`INSTRUCTOR.md`](INSTRUCTOR.md).
 
 ## Environment model
 
@@ -58,11 +58,20 @@ course doctor --json
 # Profile-specific participant kernel
 course kernel install
 
-# Golden vertical slice
+# Beginner preparation and Day 1
 course prep tensor-device --device cpu
+course prep python-numpy
+course prep tensors-autograd --device cpu
+course prep data-loader
 course train mlp --device cpu --json
-# After completing lessons/day1/mlp/exercise.py
+course train cnn --device cpu --json
+course diagnose evaluation
+# After completing the adjacent exercise files
 course exercise mlp --device cpu
+course exercise cnn --device cpu
+course exercise debugging-evaluation
+# Complete reference dry run
+python tools/smoke_phase2.py --device cpu
 
 # Slides
 course slides setup
@@ -107,24 +116,27 @@ stable kernel IDs are `cscs-pytorch-course-cpu`,
 
 Notebooks and slides remain separate educational views: notebooks support exploration and retained outputs, while slides support presentation pacing and concise explanation. Embedding a live Jupyter interface in Slidev was rejected because it rendered poorly, coupled the deck to a running notebook server, and did not remove source drift.
 
-Each directory under `lessons/` keeps one topic's implementation, exercise, solution, notebook, and slides together. For the MLP lesson:
+Each directory under `lessons/` keeps one topic's executable behavior, participant exercise, solution, notebook, and slides together where those artifacts support the learning objective:
 
 ```text
-lessons/day1/mlp/
-├── training.py
-├── exercise.py
-├── solution.py
-├── notebook.py
-├── notebook.ipynb
-└── slides.md
+lessons/
+├── prep/
+│   ├── python_numpy/
+│   ├── tensor_device/
+│   ├── tensors_autograd/
+│   └── datasets_loaders/
+└── day1/
+    ├── mlp/
+    ├── cnn/
+    └── debugging_evaluation/
 ```
 
-`training.py` owns the shared data, model, evaluation, and training path. The paired notebook, CLI, exercise harness, and smoke scenarios call it, and `slides.md` imports marked regions directly from it. `solution.py` contains the complete five-operation answer and reuses the exercise's self-check harness. `slides/lessons` is a relative symlink into the lesson tree because Slidev restricts imported Markdown and snippets to its project root.
+The MLP and CNN `training.py` modules own shared data, model, evaluation, and training paths. Paired notebooks, the CLI, exercise harnesses, smoke scenarios, and slides call or quote those implementations rather than maintaining parallel versions. Every exercise has an executable adjacent `solution.py`.
 
-Synchronize the participant notebook after editing its adjacent percent-format source:
+Synchronize participant notebooks after editing their adjacent percent-format sources:
 
 ```bash
-jupytext --sync lessons/day1/mlp/notebook.py
+jupytext --sync lessons/prep/*/notebook.py lessons/day1/*/notebook.py
 ```
 
 For an occasional live demonstration, open the notebook beside the deck rather than embedding Jupyter in a slide.

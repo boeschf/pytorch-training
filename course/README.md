@@ -87,25 +87,29 @@ Installed kernels are named **CSCS PyTorch Course — CPU**, **— CUDA**, and
 **— Alps GH200**. They can coexist. The checked-in notebook selects CPU by
 default; choose another course kernel when the lesson requires it.
 
-## First runnable slice
+## Beginner preparation and Day 1
 
-From any activated profile:
+The complete beginner path runs on the portable CPU profile without a cluster or dataset download:
 
 ```bash
 course prep tensor-device --device cpu
+course prep python-numpy
+course prep tensors-autograd --device cpu
+course prep data-loader
 course train mlp --device cpu
+course train cnn --device cpu
+course diagnose evaluation
 ```
 
-Then complete the five explicit optimization operations in
-[`lessons/day1/mlp/exercise.py`](lessons/day1/mlp/exercise.py) and run its
-self-check:
+Each exercise states its outcome, prerequisites, expected runtime, and resources. Complete its bounded gaps, then use the self-check:
 
 ```bash
 course exercise mlp --device cpu
+course exercise cnn --device cpu
+course exercise debugging-evaluation
 ```
 
-The complete answer is in the adjacent `solution.py`; the shared training
-implementation, notebook, and slides are in the same directory.
+Preparation exercises run directly from their lesson directories. Every exercise has an adjacent executable `solution.py`.
 
 ## Course material
 
@@ -114,18 +118,17 @@ Material is organized by lesson rather than artifact type:
 ```text
 lessons/
 ├── prep/
-│   └── tensor_device/
+│   ├── python_numpy/
+│   ├── tensor_device/
+│   ├── tensors_autograd/
+│   └── datasets_loaders/
 └── day1/
-    └── mlp/
-        ├── training.py
-        ├── exercise.py
-        ├── solution.py
-        ├── notebook.py
-        ├── notebook.ipynb
-        └── slides.md
+    ├── mlp/
+    ├── cnn/
+    └── debugging_evaluation/
 ```
 
-The Phase 1 golden slice covers the preparation diagnostic and deterministic Day 1 MLP. Later lessons appear as their runnable material is added.
+Topic directories keep executable behavior, exercises, solutions, paired notebooks, and slides together. The required Day 1 MLP and CNN paths are deterministic and bounded for CPU execution.
 
 ## Command help
 
@@ -134,4 +137,4 @@ course --help
 course doctor --help
 ```
 
-Instructor, developer, slide-authoring, Alps runtime, and migration instructions are in [`DEVELOPMENT.md`](DEVELOPMENT.md).
+Instructor timings and delivery notes are in [`INSTRUCTOR.md`](INSTRUCTOR.md). Developer, slide-authoring, Alps runtime, and migration instructions are in [`DEVELOPMENT.md`](DEVELOPMENT.md).

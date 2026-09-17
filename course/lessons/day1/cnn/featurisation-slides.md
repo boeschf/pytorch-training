@@ -1,189 +1,40 @@
----
-layout: section
----
+# Images are tensors
 
-# Working with Images
+Adapted from `slides/src/2.1-featurisation/section-slides.md`.
 
----
+<img src="/legacy/cnn/image_rgb_as_data.png" style="height: 330px; margin: auto" alt="RGB image represented by three numeric channels" />
 
-# (Grayscale) Images are Matrices
-
-![Grayscale Image](./imgs/image_as_data.png)
-
----
-
-# (Color) Images are Tensors
-
-<img src="./imgs/image_rgb_as_data.png" />
-
----
-
-# PyTorch: `torchvision.transform.v2`s (V2)
-
-```python {1,3,13|5|6|8|10-13}
-import torchvision.transforms.v2 as transforms
-
-transform = transforms.Compose([
-    # Convert PIL image to tensor
-    transforms.ToImage(),
-    # Apply other transforms
-    # Convert to float32 tensor (scale to range [0,1])
-    transforms.ToDtype(torch.float32, scale=True),
-    # Apply normalization
-    transforms.Normalize(
-      mean=[0.485, 0.456, 0.406],
-      std=[0.229, 0.224, 0.225]
-    )
-])
+```text
+single grayscale image  [height, width]
+RGB image               [channels, height, width]
+model batch             [batch, channels, height, width]
 ```
 
 ---
 
-# Images: 1D vs 2D Representation
+# A convolution detects local structure
 
-<img src="./imgs/2D_to_1D.png" class="h-60"/>
+A small kernel is reused at every spatial position. The same learned weights can detect a pattern wherever it occurs.
 
-How can *spatial information* be *preserved* and *exploited*?
+<div class="grid grid-cols-2 gap-4">
+  <img src="/legacy/cnn/sobel_h.png" style="height: 260px; margin: auto" alt="Horizontal Sobel response" />
+  <img src="/legacy/cnn/sobel_v.png" style="height: 260px; margin: auto" alt="Vertical Sobel response" />
+</div>
+
+The Sobel examples are fixed filters. A CNN learns its filters from the loss.
 
 ---
 
-# Convolutional Filters: Edge Detection
+# Shape arithmetic first
 
-![Edge Detection](./imgs/sobel_h.png)
+For stride 1 and padding 1, a $3\times3$ convolution preserves height and width.
 
----
-
-# Convolutional Filters: Edge Detection
-
-![Edge Detection](./imgs/sobel_v.png)
-
----
-
-# Convolution Operation
-
-$$
-	\begin{pmatrix} i_{11} & i_{12} \\ i_{21} & i_{22}\end{pmatrix} \star \begin{pmatrix} w_{11} & w_{12} \\ w_{21} & w_{22}\end{pmatrix} 
-	= i_{11}w_{11} + i_{12}w_{12} + i_{21}w_{21} + i_{22}w_{22}
-$$
-
-<v-clicks>
-
-* Element-wise multiplication
-* Summation
-
-</v-clicks>
-
----
-transition: none
---- 
-
-# Convolution Operation: Visual Representation
-
-<div grid="~ cols-2 gap-4 place-items-center h-full">
-<div class>
-
-<img src="./imgs/numerical_padding_strides_00.png" class="h-80"/>
-
-</div>
-<div class>
-
-<img src="./imgs/padding_strides_00.png" class="h-80"/>
-
-
-</div>
-</div>
-
-<div class="text-xs text-center mt-8">
-Dumoulin, Vincent, and Francesco Visin. "A guide to convolution arithmetic for deep learning." arXiv preprint arXiv:1603.07285 (2016).
-</div>
-
----
-transition: none
---- 
-
-# Convolution Operation: Visual Representation
-
-<div grid="~ cols-2 gap-4 place-items-center h-full">
-<div class>
-
-<img src="./imgs/numerical_padding_strides_01.png" class="h-80"/>
-
-</div>
-<div class>
-
-<img src="./imgs/padding_strides_01.png" class="h-80"/>
-
-
-</div>
-</div>
-
-<div class="text-xs text-center mt-8">
-Dumoulin, Vincent, and Francesco Visin. "A guide to convolution arithmetic for deep learning." arXiv preprint arXiv:1603.07285 (2016).
-</div>
-
----
-transition: none
---- 
-
-# Convolution Operation: Visual Representation
-
-<div grid="~ cols-2 gap-4 place-items-center h-full">
-<div class>
-
-<img src="./imgs/numerical_padding_strides_02.png" class="h-80"/>
-
-</div>
-<div class>
-
-<img src="./imgs/padding_strides_02.png" class="h-80"/>
-
-
-</div>
-</div>
-
-<div class="text-xs text-center mt-8">
-Dumoulin, Vincent, and Francesco Visin. "A guide to convolution arithmetic for deep learning." arXiv preprint arXiv:1603.07285 (2016).
-</div>
-
---- 
-
-# Convolution Operation: Visual Representation
-
-<div grid="~ cols-2 gap-4 place-items-center h-full">
-<div class>
-
-<img src="./imgs/numerical_padding_strides_03.png" class="h-80"/>
-
-</div>
-<div class>
-
-<img src="./imgs/padding_strides_03.png" class="h-80"/>
-
-
-</div>
-</div>
-
-<div class="text-xs text-center mt-8">
-Dumoulin, Vincent, and Francesco Visin. "A guide to convolution arithmetic for deep learning." arXiv preprint arXiv:1603.07285 (2016).
-</div>
-
---- 
-
-# PyTorch: 2D Convolution
-
-$$
-O(N_i, C_{O_j}) = b(C_{O_j}) + \sum_{k=0}^{C_I - 1} W(C_{O_j}, k) \star I(N_i, k) 
-$$
-
-```python {1-8|2|3|4|5|6,7|0-8}
-torch.nn.Conv2d(
-  in_channels, 
-  out_channels, 
-  kernel_size, 
-  stride=1, padding=0, dilation=1, 
-  bias=True,
-  padding_mode='zeros'
-)
+```text
+[batch, 1, 8, 8]
+  Conv2d(1, 4, kernel_size=3, padding=1)
+[batch, 4, 8, 8]
+  MaxPool2d(2)
+[batch, 4, 4, 4]
 ```
 
-`padding="same"` automatically adds padding to keep the output size the same as the input size.
+Channels describe learned feature maps; pooling reduces spatial resolution.

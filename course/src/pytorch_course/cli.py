@@ -57,6 +57,63 @@ def run_tensor_diagnostic(args: argparse.Namespace) -> int:
     )
 
 
+def run_python_numpy(args: argparse.Namespace) -> int:
+    """Run the preparation NumPy broadcasting diagnostic."""
+    from lessons.prep.python_numpy.solution import python_numpy_report
+
+    report = python_numpy_report()
+    return emit_report(
+        report,
+        as_json=args.json,
+        output=args.output,
+        human_lines=[
+            f"Table: {report['samples']} samples × {report['features']} features",
+            f"Input preserved: {report['input_preserved']}",
+            f"Status: {str(report['status']).upper()}",
+        ],
+    )
+
+
+def run_autograd(args: argparse.Namespace) -> int:
+    """Run the preparation analytical-gradient diagnostic."""
+    from lessons.prep.tensors_autograd.reference import autograd_report
+    from lessons.prep.tensors_autograd.solution import squared_error
+
+    try:
+        report = autograd_report(squared_error, args.device)
+    except (RuntimeError, ValueError) as error:
+        print(error, file=sys.stderr)
+        return 1
+    return emit_report(
+        report,
+        as_json=args.json,
+        output=args.output,
+        human_lines=[
+            f"Device: {report['selected_device']} (requested {report['requested_device']})",
+            f"Gradient: {report['gradient']}",
+            f"Status: {str(report['status']).upper()}",
+        ],
+    )
+
+
+def run_data_loader(args: argparse.Namespace) -> int:
+    """Run the preparation Dataset and DataLoader diagnostic."""
+    from lessons.prep.datasets_loaders.reference import dataset_loader_report
+    from lessons.prep.datasets_loaders.solution import PairDataset
+
+    report = dataset_loader_report(PairDataset)
+    return emit_report(
+        report,
+        as_json=args.json,
+        output=args.output,
+        human_lines=[
+            f"Epoch: {report['samples']} samples in {report['batches']} batches",
+            f"Deterministic shuffle: {report['deterministic_shuffle']}",
+            f"Status: {str(report['status']).upper()}",
+        ],
+    )
+
+
 def run_mlp_training(args: argparse.Namespace) -> int:
     """Run the deterministic Day 1 training path."""
     from lessons.day1.mlp.solution import optimization_step
@@ -90,11 +147,75 @@ def run_mlp_training(args: argparse.Namespace) -> int:
     )
 
 
+def run_cnn_training(args: argparse.Namespace) -> int:
+    """Run the deterministic Day 1 CNN training path."""
+    from lessons.day1.cnn.training import train_cnn
+
+    try:
+        report = train_cnn(
+            requested_device=args.device,
+            seed=args.seed,
+            epochs=args.epochs,
+            learning_rate=args.learning_rate,
+            samples=args.samples,
+            batch_size=args.batch_size,
+        )
+    except (RuntimeError, ValueError) as error:
+        print(error, file=sys.stderr)
+        return 1
+    return emit_report(
+        report,
+        as_json=args.json,
+        output=args.output,
+        human_lines=[
+            f"Device: {report['selected_device']} (requested {report['requested_device']})",
+            (
+                f"Evaluation loss: {report['initial_eval_loss']:.6f} "
+                f"→ {report['final_eval_loss']:.6f}"
+            ),
+            f"Evaluation accuracy: {report['eval_accuracy']:.1%}",
+            f"Status: {str(report['status']).upper()}",
+        ],
+    )
+
+
 def run_mlp_exercise(args: argparse.Namespace) -> int:
     """Run the participant MLP exercise self-check."""
     from lessons.day1.mlp.exercise import main
 
     return main(args.device)
+
+
+def run_cnn_exercise(args: argparse.Namespace) -> int:
+    """Run the participant CNN architecture self-check."""
+    from lessons.day1.cnn.exercise import main
+
+    return main(args.device)
+
+
+def run_debugging_exercise() -> int:
+    """Run the participant debugging and evaluation self-check."""
+    from lessons.day1.debugging_evaluation.exercise import main
+
+    return main()
+
+
+def run_evaluation_diagnostic(args: argparse.Namespace) -> int:
+    """Run the completed debugging and evaluation diagnostic."""
+    from lessons.day1.debugging_evaluation.reference import debugging_report
+    from lessons.day1.debugging_evaluation.solution import repair_batch
+
+    report = debugging_report(repair_batch)
+    return emit_report(
+        report,
+        as_json=args.json,
+        output=args.output,
+        human_lines=[
+            f"Issues before repair: {len(report['issues_before'])}",
+            f"Issues after repair: {len(report['issues_after'])}",
+            f"Status: {str(report['status']).upper()}",
+        ],
+    )
 
 
 def run(command: list[str], *, environment: dict[str, str] | None = None) -> int:
@@ -194,6 +315,22 @@ def create_parser() -> argparse.ArgumentParser:
     tensor_device.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     tensor_device.add_argument("--json", action="store_true")
     tensor_device.add_argument("--output", type=Path)
+    python_numpy = prep_commands.add_parser(
+        "python-numpy", help="check NumPy reductions and broadcasting"
+    )
+    python_numpy.add_argument("--json", action="store_true")
+    python_numpy.add_argument("--output", type=Path)
+    tensors_autograd = prep_commands.add_parser(
+        "tensors-autograd", help="check tensor gradients analytically"
+    )
+    tensors_autograd.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
+    tensors_autograd.add_argument("--json", action="store_true")
+    tensors_autograd.add_argument("--output", type=Path)
+    data_loader = prep_commands.add_parser(
+        "data-loader", help="check dataset indexing and deterministic batching"
+    )
+    data_loader.add_argument("--json", action="store_true")
+    data_loader.add_argument("--output", type=Path)
 
     exercise = commands.add_parser("exercise", help="run participant exercise self-checks")
     exercise_commands = exercise.add_subparsers(dest="exercise_command", required=True)
@@ -201,6 +338,13 @@ def create_parser() -> argparse.ArgumentParser:
         "mlp", help="check the Day 1 optimization-step exercise"
     )
     exercise_mlp.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
+    exercise_cnn = exercise_commands.add_parser(
+        "cnn", help="check the Day 1 CNN architecture exercise"
+    )
+    exercise_cnn.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
+    exercise_commands.add_parser(
+        "debugging-evaluation", help="check the Day 1 batch-repair exercise"
+    )
 
     train = commands.add_parser("train", help="run tested training paths")
     train_commands = train.add_subparsers(dest="train_command", required=True)
@@ -212,6 +356,23 @@ def create_parser() -> argparse.ArgumentParser:
     mlp.add_argument("--samples", type=int, default=512)
     mlp.add_argument("--json", action="store_true")
     mlp.add_argument("--output", type=Path)
+    cnn = train_commands.add_parser("cnn", help="train the deterministic Day 1 CNN")
+    cnn.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
+    cnn.add_argument("--seed", type=int, default=11)
+    cnn.add_argument("--epochs", type=int, default=6)
+    cnn.add_argument("--learning-rate", type=float, default=0.03)
+    cnn.add_argument("--samples", type=int, default=256)
+    cnn.add_argument("--batch-size", type=int, default=32)
+    cnn.add_argument("--json", action="store_true")
+    cnn.add_argument("--output", type=Path)
+
+    diagnose = commands.add_parser("diagnose", help="run focused learning diagnostics")
+    diagnose_commands = diagnose.add_subparsers(dest="diagnose_command", required=True)
+    evaluation = diagnose_commands.add_parser(
+        "evaluation", help="check classification shape, dtype, and state invariants"
+    )
+    evaluation.add_argument("--json", action="store_true")
+    evaluation.add_argument("--output", type=Path)
 
     kernel = commands.add_parser("kernel", help="manage the participant Jupyter kernel")
     kernel.add_argument("action", choices=("install",))
@@ -238,10 +399,24 @@ def main(argv: list[str] | None = None) -> int:
         return doctor.run_doctor(args)
     if args.command == "prep" and args.prep_command == "tensor-device":
         return run_tensor_diagnostic(args)
+    if args.command == "prep" and args.prep_command == "python-numpy":
+        return run_python_numpy(args)
+    if args.command == "prep" and args.prep_command == "tensors-autograd":
+        return run_autograd(args)
+    if args.command == "prep" and args.prep_command == "data-loader":
+        return run_data_loader(args)
     if args.command == "exercise" and args.exercise_command == "mlp":
         return run_mlp_exercise(args)
+    if args.command == "exercise" and args.exercise_command == "cnn":
+        return run_cnn_exercise(args)
+    if args.command == "exercise" and args.exercise_command == "debugging-evaluation":
+        return run_debugging_exercise()
     if args.command == "train" and args.train_command == "mlp":
         return run_mlp_training(args)
+    if args.command == "train" and args.train_command == "cnn":
+        return run_cnn_training(args)
+    if args.command == "diagnose" and args.diagnose_command == "evaluation":
+        return run_evaluation_diagnostic(args)
     if args.command == "kernel":
         return install_kernel()
     if args.command == "completion":

@@ -16,15 +16,15 @@
 # %% [markdown]
 # # From tensors to a trained MLP
 #
-# This notebook is a thin educational view over the tested course package. The
-# implementation remains in `pytorch_course.foundations`; the notebook inspects
-# inputs and results without maintaining another training loop.
+# This notebook is a thin educational view over the tested lesson. The complete
+# implementation is beside it in `reference.py`; the notebook inspects inputs and
+# results without maintaining another training loop.
 
 # %%
 from pprint import pprint
 
-from pytorch_course.foundations.mlp import MLP, make_dataset, train_mlp
-from pytorch_course.foundations.tensors import tensor_device_report
+from lessons.day1.mlp.reference import MLP, make_dataset, train_mlp
+from lessons.prep.tensor_device.reference import tensor_device_report
 
 # %% [markdown]
 # ## Check tensors and the CPU device

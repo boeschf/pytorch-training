@@ -34,7 +34,7 @@ def emit_report(
 
 def run_tensor_diagnostic(args: argparse.Namespace) -> int:
     """Run the preparation tensor and device diagnostic."""
-    from pytorch_course.foundations.tensors import tensor_device_report
+    from lessons.prep.tensor_device.reference import tensor_device_report
 
     try:
         report = tensor_device_report(args.device)
@@ -56,7 +56,7 @@ def run_tensor_diagnostic(args: argparse.Namespace) -> int:
 
 def run_mlp_training(args: argparse.Namespace) -> int:
     """Run the deterministic Day 1 reference training path."""
-    from pytorch_course.foundations.mlp import train_mlp
+    from lessons.day1.mlp.reference import train_mlp
 
     try:
         report = train_mlp(

@@ -72,40 +72,38 @@ course/
 ├── LICENSE
 ├── pyproject.toml
 ├── uv.lock
+├── lessons/
+│   ├── prep/
+│   │   └── <topic>/
+│   ├── day1/
+│   │   └── <topic>/
+│   ├── day2/
+│   │   └── <topic>/
+│   └── day3/
+│       └── <topic>/
+│           ├── reference.py
+│           ├── exercise.py
+│           ├── solution.py
+│           ├── notebook.py
+│           ├── notebook.ipynb
+│           └── slides.md
+├── src/pytorch_course/
+│   ├── distributed/
+│   ├── observability/
+│   ├── cli.py
+│   └── doctor.py
+├── slides/
+│   ├── slides.md
+│   ├── lessons -> ../lessons
+│   └── package.json
 ├── environment/
 │   ├── image.env
 │   ├── alps.toml
 │   ├── create-venv.sh
 │   └── doctor.py
-├── src/pytorch_course/
-│   ├── foundations/
-│   ├── data/
-│   ├── models/
-│   ├── training/
-│   ├── distributed/
-│   ├── observability/
-│   └── cli.py
 ├── configs/
-│   ├── beginner/
 │   ├── single_gpu/
 │   └── distributed/
-├── exercises/
-│   ├── prep/
-│   ├── day1/
-│   ├── day2/
-│   └── day3/
-├── solutions/
-├── notebooks/
-│   ├── prep/
-│   ├── day1/
-│   ├── day2/
-│   └── day3/
-├── slides/
-│   ├── prep/
-│   ├── day1/
-│   ├── day2/
-│   ├── day3/
-│   └── shared/
 ├── jobs/
 │   ├── single_gpu/
 │   └── distributed/
@@ -116,6 +114,8 @@ course/
 ├── tests/
 └── tools/
 ```
+
+Lesson directories are the primary navigation surface. Keep the reference implementation beside its exercise, solution, notebook, and slides so participants and instructors do not have to reconstruct a topic across artifact-type trees. Reserve `src/pytorch_course/` for genuinely cross-lesson infrastructure.
 
 `data/` contains manifests and preparation code, not the prepared corpora. `reports/` contains report-generation code and small reference summaries, not full traces.
 

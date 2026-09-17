@@ -11,8 +11,8 @@ from __future__ import annotations
 import torch
 from torch import nn
 
-from pytorch_course.foundations.mlp import MLP, make_dataset
-from pytorch_course.foundations.tensors import resolve_device
+from lessons.day1.mlp.reference import MLP, make_dataset
+from lessons.prep.tensor_device.reference import resolve_device
 
 
 def optimization_step(

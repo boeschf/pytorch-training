@@ -9,6 +9,7 @@ import torch
 DeviceRequest = Literal["auto", "cpu", "cuda"]
 
 
+# region device-selection
 def resolve_device(requested: DeviceRequest) -> torch.device:
     """Resolve an explicit or automatic device request."""
     if requested == "cuda":
@@ -18,6 +19,9 @@ def resolve_device(requested: DeviceRequest) -> torch.device:
     if requested == "cpu":
         return torch.device("cpu")
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+# endregion device-selection
 
 
 # region tensor-device-diagnostic

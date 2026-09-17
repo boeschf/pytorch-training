@@ -4,7 +4,7 @@ import pytest
 
 pytest.importorskip("torch")
 
-from pytorch_course.foundations.mlp import train_mlp
+from lessons.day1.mlp.reference import train_mlp
 
 
 def test_cpu_training_has_deterministic_learning_signal() -> None:

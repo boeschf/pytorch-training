@@ -52,7 +52,7 @@ Run `uv run course --help` for the complete command surface. Scripts under `envi
 The `uv run` training commands assume the selected Python environment can import PyTorch. The canonical image already contains the runtime but not `uv`; execute the same CLI there with:
 
 ```bash
-export PYTHONPATH="$PWD/src"
+export PYTHONPATH="$PWD:$PWD/src"
 python -m pytorch_course.cli prep tensor-device --device cpu
 python -m pytorch_course.cli train mlp --device cuda --json
 ```
@@ -61,17 +61,24 @@ python -m pytorch_course.cli train mlp --device cuda --json
 
 Notebooks and slides remain separate educational views: notebooks support exploration and retained outputs, while slides support presentation pacing and concise explanation. Embedding a live Jupyter interface in Slidev was rejected because it rendered poorly, coupled the deck to a running notebook server, and did not remove source drift.
 
-The shared contract is executable code instead:
+Each directory under `lessons/` keeps one topic's implementation, exercise, solution, notebook, and slides together. For the MLP lesson:
 
-- `src/pytorch_course/foundations/` is the implementation source of truth;
-- the paired Jupytext and `.ipynb` notebook imports that implementation;
-- the reference solution and smoke scenarios call the same functions;
-- Slidev imports marked regions from the same Python files through `slides/snippets/pytorch_course`, a relative symlink required because Slidev restricts snippet imports to its project root.
+```text
+lessons/day1/mlp/
+├── reference.py
+├── exercise.py
+├── solution.py
+├── notebook.py
+├── notebook.ipynb
+└── slides.md
+```
 
-Synchronize the participant notebook after editing its percent-format source:
+`reference.py` is the executable source of truth. The paired notebook imports it, the solution and smoke scenarios call it, and `slides.md` imports marked regions directly from it. `slides/lessons` is a relative symlink into the lesson tree because Slidev restricts imported Markdown and snippets to its project root.
+
+Synchronize the participant notebook after editing its adjacent percent-format source:
 
 ```bash
-uv run jupytext --sync notebooks/day1/golden_slice.py
+uv run jupytext --sync lessons/day1/mlp/notebook.py
 ```
 
 For an occasional live demonstration, open the notebook beside the deck rather than embedding Jupyter in a slide.
@@ -154,13 +161,15 @@ The implementation stores the EDF image cache under `course/.edf_imagestore/`, w
 
 ```text
 course/
+├── lessons/           topic-local code, exercises, solutions, notebooks, and slides
+│   ├── prep/
+│   ├── day1/
+│   ├── day2/
+│   └── day3/
+├── src/               course CLI and non-lesson infrastructure
+├── slides/            Slidev toolchain, entry deck, and lesson-tree bridge
 ├── environment/       pinned runtime and low-level launch scripts
-├── src/               importable reference implementations and CLI
-├── configs/           beginner, single-GPU, and distributed configurations
-├── exercises/         preparation and day-specific participant work
-├── solutions/         verified reference solutions
-├── notebooks/         educational and analysis views
-├── slides/            preparation and three-day decks
+├── configs/           shared runtime configurations
 ├── jobs/              bounded single- and multi-node launchers
 ├── data/              manifests and preparation code, never bulk datasets
 ├── reports/           report generators and small reference summaries
@@ -168,7 +177,7 @@ course/
 └── tools/             release and authoring utilities
 ```
 
-Directories are committed only when they contain real material.
+New participant material belongs in a lesson directory. Cross-lesson infrastructure belongs under `src/pytorch_course/`; do not move teaching code there merely to make it importable.
 
 ## Source-of-truth rules
 

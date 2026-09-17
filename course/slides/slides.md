@@ -16,5 +16,5 @@ inspect → implement → train → evaluate
 ```
 
 ---
-src: ./day1/golden-slice.md
+src: ./lessons/day1/mlp/slides.md
 ---

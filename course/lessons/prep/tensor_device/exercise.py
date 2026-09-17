@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 
-from pytorch_course.foundations.tensors import tensor_device_report
+from lessons.prep.tensor_device.reference import tensor_device_report
 
 if __name__ == "__main__":
     report = tensor_device_report("auto")

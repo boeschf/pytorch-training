@@ -26,7 +26,7 @@ requires = ["hatchling>=1.27,<2"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/pytorch_course"]
+packages = ["src/pytorch_course", "lessons"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

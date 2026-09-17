@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import torch
 from torch import nn
 
-from pytorch_course.foundations.tensors import DeviceRequest, resolve_device
+from lessons.prep.tensor_device.reference import DeviceRequest, resolve_device
 
 
 @dataclass(frozen=True)
@@ -20,6 +20,7 @@ class DatasetSplit:
     eval_targets: torch.Tensor
 
 
+# region mlp-model
 class MLP(nn.Module):
     """Small classifier for a nonlinear two-dimensional problem."""
 
@@ -36,11 +37,16 @@ class MLP(nn.Module):
         return self.layers(features)
 
 
+# endregion mlp-model
+
+
+# region xor-dataset
 def make_dataset(*, samples: int, seed: int) -> DatasetSplit:
     """Create a balanced XOR-like dataset without network access."""
     if samples < 64 or samples % 4:
         raise ValueError("samples must be a multiple of four and at least 64")
 
+    # region xor-generation
     generator = torch.Generator().manual_seed(seed)
     centers = torch.tensor(
         [
@@ -57,6 +63,7 @@ def make_dataset(*, samples: int, seed: int) -> DatasetSplit:
     features = features[order]
     targets = targets[order]
     train_size = 3 * samples // 4
+    # endregion xor-generation
     return DatasetSplit(
         train_features=features[:train_size],
         train_targets=targets[:train_size],
@@ -65,6 +72,10 @@ def make_dataset(*, samples: int, seed: int) -> DatasetSplit:
     )
 
 
+# endregion xor-dataset
+
+
+# region evaluation
 def evaluate(
     model: nn.Module,
     features: torch.Tensor,
@@ -78,6 +89,9 @@ def evaluate(
         loss = loss_function(logits, targets).item()
         accuracy = (logits.argmax(dim=1) == targets).float().mean().item()
     return loss, accuracy
+
+
+# endregion evaluation
 
 
 def train_mlp(
@@ -106,9 +120,11 @@ def train_mlp(
     eval_features = split.eval_features.to(device)
     eval_targets = split.eval_targets.to(device)
 
+    # region training-components
     model = MLP().to(device)
     loss_function = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+    # endregion training-components
 
     initial_loss, _ = evaluate(model, train_features, train_targets, loss_function)
     model.train()

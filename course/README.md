@@ -29,29 +29,34 @@ Select the **CSCS PyTorch Course** kernel when opening a notebook.
 Inside the canonical course image:
 
 ```bash
-export PYTHONPATH="$PWD/src"
+export PYTHONPATH="$PWD:$PWD/src"
 python -m pytorch_course.cli prep tensor-device --device cpu
 python -m pytorch_course.cli train mlp --device cpu
 ```
 
-Then complete the five explicit optimization operations in [`exercises/day1/mlp.py`](exercises/day1/mlp.py). The reference path, thin notebook, and slides all use the implementation under `src/pytorch_course/foundations/`.
+Then complete the five explicit optimization operations in [`lessons/day1/mlp/exercise.py`](lessons/day1/mlp/exercise.py). Its reference implementation, solution, notebook, and slides are in the same directory.
 
 A workstation without PyTorch can still build slides, edit material, and run the authoring tools. PyTorch exercises and notebooks require the canonical image.
 
 ## Course material
 
-The participant-facing material will be organized as:
+Material is organized by lesson rather than artifact type:
 
 ```text
-exercises/prep/   pre-course Python, NumPy, tensor, and environment preparation
-exercises/day1/   tensors, autograd, explicit training loops, MLPs, and CNNs
-exercises/day2/   robust training, attention, transformers, and first distributed run
-exercises/day3/   large-model parallelism, MoE, profiling, and kernels
-notebooks/        guided explanations and analysis
-slides/           presentation source
+lessons/
+├── prep/
+│   └── tensor_device/
+└── day1/
+    └── mlp/
+        ├── reference.py
+        ├── exercise.py
+        ├── solution.py
+        ├── notebook.py
+        ├── notebook.ipynb
+        └── slides.md
 ```
 
-The Phase 1 golden slice now covers the preparation diagnostic and a deterministic Day 1 MLP. Later sections appear as their runnable material is added.
+The Phase 1 golden slice covers the preparation diagnostic and deterministic Day 1 MLP. Later lessons appear as their runnable material is added.
 
 ## Command help
 

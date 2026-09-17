@@ -58,12 +58,17 @@ def run_exercise(
     optimizer = torch.optim.SGD(model.parameters(), lr=0.05)
     loss_function = nn.CrossEntropyLoss()
 
-    model.train()
-    for _ in range(200):
-        step(model, optimizer, loss_function, features, targets)
+    print("epoch | train loss | eval loss | eval accuracy")
+    accuracy = 0.0
+    for epoch in range(201):
+        if epoch:
+            step(model, optimizer, loss_function, features, targets)
+        if epoch % 20 == 0:
+            train_loss, _ = evaluate(model, features, targets, loss_function)
+            eval_loss, accuracy = evaluate(model, eval_features, eval_targets, loss_function)
+            print(f"{epoch:>5} | {train_loss:>10.6f} | {eval_loss:>9.6f} | {accuracy:>12.1%}")
+            model.train()
 
-    _, accuracy = evaluate(model, eval_features, eval_targets, loss_function)
-    print(f"evaluation accuracy: {accuracy:.1%}")
     if accuracy < 0.95:
         print("Status: FAIL — revisit the optimization step")
         return 1

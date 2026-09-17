@@ -4,7 +4,7 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from lessons.day1.mlp.reference import MLP, make_dataset, train_mlp
+from lessons.day1.mlp.reference import MLP, make_dataset, run_mlp, train_mlp
 from lessons.day1.mlp.solution import optimization_step
 
 
@@ -16,6 +16,18 @@ def test_cpu_training_has_deterministic_learning_signal() -> None:
     assert first["status"] == "pass"
     assert first["final_train_loss"] < first["initial_train_loss"] * 0.35
     assert first["eval_accuracy"] >= 0.95
+
+
+def test_training_history_includes_boundaries_and_progress() -> None:
+    run = run_mlp(
+        requested_device="cpu",
+        epochs=25,
+        samples=64,
+        snapshot_interval=10,
+    )
+
+    assert [snapshot.epoch for snapshot in run.history] == [0, 10, 20, 25]
+    assert run.history[-1].train_loss < run.history[0].train_loss
 
 
 def test_solution_step_updates_model_parameters() -> None:

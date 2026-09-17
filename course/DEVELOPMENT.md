@@ -49,6 +49,7 @@ Start with the portable authoring profile:
 ```bash
 ./environment/create-venv.sh cpu
 source .venv-cpu/bin/activate
+source <(course completion bash)
 
 # Environment reports
 course doctor
@@ -78,6 +79,15 @@ course alps-smoke --account=<account> --gpus=4
 Run `course --help` for the complete command surface. Scripts under
 `environment/` are implementation details and remain directly callable for
 debugging.
+
+The Bash completion script is generated from `create_parser()` and packaged with
+the CLI, so runtime environments do not need `shtab`. Regenerate and verify it
+after changing the command surface:
+
+```bash
+python tools/generate_completion.py
+python tools/generate_completion.py --check
+```
 
 To author against a generic NVIDIA runtime, create and activate `cuda` instead.
 Create the Alps profile in a bounded image allocation:

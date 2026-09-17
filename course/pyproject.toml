@@ -24,6 +24,7 @@ dev = [
   "nodeenv>=1.9,<2",
   "pytest>=8,<10",
   "ruff>=0.12,<1",
+  "shtab>=1.7,<2",
 ]
 notebooks = [
   "ipykernel>=6.29,<8",

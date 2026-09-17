@@ -40,6 +40,18 @@ course kernel install
 The CUDA profile verifies the locked CUDA build even when no GPU is currently
 visible. A command that needs a GPU still fails clearly if CUDA is unavailable.
 
+## Bash completion
+
+From any activated course profile, load the packaged static completion script:
+
+```bash
+source <(course completion bash)
+```
+
+The script completes commands, nested commands, options, fixed choices, and
+output paths. Add the same line to shell initialization that runs after the
+selected course profile is activated.
+
 ## Alps GH200 setup
 
 Create the Alps environment inside the pinned course image so it inherits that
@@ -92,7 +104,7 @@ self-check:
 course exercise mlp --device cpu
 ```
 
-The complete answer is in the adjacent `solution.py`; the reference
+The complete answer is in the adjacent `solution.py`; the shared training
 implementation, notebook, and slides are in the same directory.
 
 ## Course material

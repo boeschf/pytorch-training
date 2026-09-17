@@ -7,6 +7,7 @@ import json
 import os
 import subprocess
 import sys
+from importlib.resources import files
 from pathlib import Path
 
 from pytorch_course import doctor
@@ -14,6 +15,7 @@ from pytorch_course.profiles import kernel_identity, require_profile
 
 COURSE_ROOT = Path(__file__).resolve().parents[2]
 ENVIRONMENT_DIR = COURSE_ROOT / "environment"
+COMPLETION_SCRIPT = files("pytorch_course").joinpath("completions").joinpath("course.bash")
 
 
 def emit_report(
@@ -149,6 +151,12 @@ def install_kernel() -> int:
     )
 
 
+def emit_bash_completion() -> int:
+    """Write the packaged static Bash completion script to stdout."""
+    sys.stdout.write(COMPLETION_SCRIPT.read_text(encoding="utf-8"))
+    return 0
+
+
 def run_alps_smoke(args: argparse.Namespace) -> int:
     """Request a bounded Alps allocation and verify the canonical runtime."""
     environment = os.environ.copy()
@@ -194,7 +202,7 @@ def create_parser() -> argparse.ArgumentParser:
     )
     exercise_mlp.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
 
-    train = commands.add_parser("train", help="run reference training paths")
+    train = commands.add_parser("train", help="run tested training paths")
     train_commands = train.add_subparsers(dest="train_command", required=True)
     mlp = train_commands.add_parser("mlp", help="train the deterministic Day 1 MLP")
     mlp.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
@@ -207,6 +215,9 @@ def create_parser() -> argparse.ArgumentParser:
 
     kernel = commands.add_parser("kernel", help="manage the participant Jupyter kernel")
     kernel.add_argument("action", choices=("install",))
+
+    completion = commands.add_parser("completion", help="emit shell completion code")
+    completion.add_argument("shell", choices=("bash",))
 
     slides = commands.add_parser("slides", help="manage the pinned Slidev environment")
     slides.add_argument("action", choices=("setup", "build", "dev", "preview", "export", "audit"))
@@ -233,6 +244,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_mlp_training(args)
     if args.command == "kernel":
         return install_kernel()
+    if args.command == "completion":
+        return emit_bash_completion()
     if args.command == "slides":
         return run_slides(args.action)
     if args.command == "alps-smoke":

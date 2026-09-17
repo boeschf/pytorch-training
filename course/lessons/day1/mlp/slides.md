@@ -120,7 +120,7 @@ predictions = logits.argmax(dim=1)  # [N]
 
 <<< @/lessons/day1/mlp/solution.py#optimization-step-solution
 
-`run_mlp` calls one supplied step per epoch. The CLI uses this canonical solution; the exercise injects the participant's implementation into the same loop.
+`run_mlp` requires one supplied step per epoch. The CLI and notebook explicitly pass this solution; the exercise explicitly passes the participant's implementation.
 
 ---
 
@@ -180,7 +180,7 @@ lessons/day1/mlp/
 └── slides.md      presentation view
 ```
 
-The notebook, CLI, and exercise all use the single loop in `training.py`. Its default step comes from `solution.py`; the exercise injects the participant's step and a progress callback.
+The notebook, CLI, and exercise all use the single loop in `training.py`. Every caller explicitly supplies either the completed step from `solution.py` or the participant's exercise step.
 
 ---
 layout: center

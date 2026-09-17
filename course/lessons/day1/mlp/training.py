@@ -131,16 +131,16 @@ def evaluate(
 
 def run_mlp(
     *,
+    training_step: OptimizationStep,
     requested_device: DeviceRequest = "auto",
     seed: int = 7,
     epochs: int = 200,
     learning_rate: float = 0.05,
     samples: int = 512,
     snapshot_interval: int = 10,
-    training_step: OptimizationStep | None = None,
     on_snapshot: SnapshotCallback | None = None,
 ) -> TrainingRun:
-    """Train the MLP through the shared loop and retain bounded history."""
+    """Train with the caller-supplied step and retain bounded history."""
 
     if epochs < 1:
         raise ValueError("epochs must be positive")
@@ -148,12 +148,6 @@ def run_mlp(
         raise ValueError("learning_rate must be positive")
     if snapshot_interval < 1:
         raise ValueError("snapshot_interval must be positive")
-    # The CLI/notebook use the complete step by default. The exercise injects
-    # the participant's implementation through the same interface.
-    if training_step is None:
-        from lessons.day1.mlp.solution import optimization_step
-
-        training_step = optimization_step
 
     # Seed parameter initialization and request deterministic kernels so two
     # runs with the same inputs produce the same learning signal.
@@ -242,14 +236,16 @@ def run_mlp(
 
 def train_mlp(
     *,
+    training_step: OptimizationStep,
     requested_device: DeviceRequest = "auto",
     seed: int = 7,
     epochs: int = 200,
     learning_rate: float = 0.05,
     samples: int = 512,
 ) -> dict[str, object]:
-    """Train the MLP and return stable, machine-readable metrics."""
+    """Run the caller-supplied step and return stable, serializable metrics."""
     return run_mlp(
+        training_step=training_step,
         requested_device=requested_device,
         seed=seed,
         epochs=epochs,

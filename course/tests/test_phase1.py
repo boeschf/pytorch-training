@@ -9,8 +9,8 @@ from lessons.day1.mlp.training import MLP, evaluate, make_dataset, run_mlp, trai
 
 
 def test_cpu_training_has_deterministic_learning_signal() -> None:
-    first = train_mlp(requested_device="cpu")
-    second = train_mlp(requested_device="cpu")
+    first = train_mlp(training_step=optimization_step, requested_device="cpu")
+    second = train_mlp(training_step=optimization_step, requested_device="cpu")
 
     assert first == second
     assert first["status"] == "pass"
@@ -20,6 +20,7 @@ def test_cpu_training_has_deterministic_learning_signal() -> None:
 
 def test_training_history_includes_boundaries_and_progress() -> None:
     run = run_mlp(
+        training_step=optimization_step,
         requested_device="cpu",
         epochs=25,
         samples=64,

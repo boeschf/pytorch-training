@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 
+from lessons.day1.mlp.solution import optimization_step
 from lessons.day1.mlp.training import train_mlp
 from lessons.prep.tensor_device.reference import tensor_device_report
 
@@ -15,8 +16,8 @@ def main() -> int:
     args = parser.parse_args()
 
     tensor_report = tensor_device_report(args.device)
-    first = train_mlp(requested_device=args.device)
-    second = train_mlp(requested_device=args.device)
+    first = train_mlp(training_step=optimization_step, requested_device=args.device)
+    second = train_mlp(training_step=optimization_step, requested_device=args.device)
 
     if tensor_report["status"] != "pass":
         raise RuntimeError(f"tensor diagnostic failed: {tensor_report}")

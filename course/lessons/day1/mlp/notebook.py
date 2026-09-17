@@ -26,6 +26,7 @@ from pprint import pprint
 import matplotlib.pyplot as plt
 import torch
 
+from lessons.day1.mlp.solution import optimization_step
 from lessons.day1.mlp.training import MLP, make_dataset, run_mlp
 from lessons.prep.tensor_device.reference import tensor_device_report
 
@@ -61,11 +62,11 @@ print(model)
 # ## Train and evaluate
 #
 # `run_mlp` is the single training loop used by the CLI, notebook, smoke runs,
-# and exercise. It defaults to the completed step from `solution.py`; the
-# exercise injects the participant's implementation and a progress callback.
+# and exercise. Each caller explicitly selects its optimization step; this
+# notebook chooses the completed implementation from `solution.py`.
 
 # %%
-run = run_mlp(requested_device="cpu", seed=7)
+run = run_mlp(training_step=optimization_step, requested_device="cpu", seed=7)
 metrics = run.report
 pprint(metrics)
 assert metrics["status"] == "pass"
